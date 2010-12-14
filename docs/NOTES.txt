@@ -1,14 +1,20 @@
+<b>How does everything get compiled?</b>
+The MAC and PROCESSOR files are separated away from the main
+stack.  This allows the stack to be ported to different platforms
+easily.  To compile for an already ported architectures, copy the 
+appropriate files from the MAC and PROC directories and include 
+them in your project.
+
+<b>How to port to a particular platform</b>
+This section will be expanded when the procedure has been formalised.
+For now, you basically need to derrive from the prototypes provided
+by link_mac.h and link_uc.h
+
 <b>Sometimes 'locks up' for a little bit.</b>
 Some functions have been made to block, such as waiting for ARP 
 replies.  If this is being implemented on a 
 multitasking OS, then task queues for things like ARP and DHCP 
 would be useful.
-
-<b>Why centiseconds?</b>
-Millisecond resolution seems like overkill to me, as it is only 
-used for timeouts in this appliction.  Generally a timer interrupt 
-is used, ms interrupts might spend more time interrupting than 
-doing anything useful.
 
 <b>Why aren't all features of the RFCs implemented correctly, if at all?</b>
 sIP is designed to be a very simple TCP/IP stack to help learn how the 
@@ -51,6 +57,6 @@ ARP does not check the packet is from who it says it is from.
 <b>Coding Standards</b>
 Ideally the code should conform to some form of standard in order to help
 ensure it is maintainable and easy to read.  The code did not originally 
-conform to any such standard.  From now on, code will be (re)written to conform
-to the MISRA C coding standards.  Note that this code does not current comply
-with the standard.
+conform to any such standard.  At some point, the code will be (re)written 
+to conform to the MISRA C coding standards.  Note that this code does not 
+currently comply with the standard.
