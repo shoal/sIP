@@ -1,6 +1,6 @@
 Simple IP (sIP) is an TCP/IP stack designed for embedded
-devices, allowing small microcontrollers to communicate via
-Ethernet.  
+devices, allowing small microcontrollers (8-bit) to communicate 
+via Ethernet.
 
 The stack has been kept as simple as possible to ensure
 that it meets the strict size constraints of the target 
@@ -8,12 +8,24 @@ hardware (including 8-bit micros) and also allows students
 to study an entire stack without any additional
 complications.
 
+The stack is fairly lightweight and some features of RFCs 
+may intentionally not be fully implemented to keep things
+simple (but still working!).
+
+The stack is ideally suited to projects where resources 
+are scarce, and bandwidth is low.  Common examples include
+remote control (eg home automation), data logging (eg 
+weather stations) and servers (eg small web and time servers).
+
 The stack is not complete and is available online purely
 for backup purposes at the moment.  Completion is expected 
 during 2011 (as it is a spare-time project).
 
 Modifications are welcome, and code critique/review even
 more so.
+
+Notes about design decisions can be found in docs/NOTES.txt
+
 
 Regards
 

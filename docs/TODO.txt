@@ -1,0 +1,17 @@
+ARP
+  - Deal with IP clash.  RARP?
+  - Support RARP, gratuitous ARP etc.
+  - Implement some simple ARP attack prevention.
+ 
+ TIMER
+  - Make timer more configurable (different clocks)
+  
+ GENERAL
+ - Deal with packet fragmentation (for now assume fixed length packets)
+ - If PHY/MAC receives a frame that is too large for our max frame, what to do??
+ - Remove standard datatypes (int, char) and use uint8_t etc.
+ - Optimise ETH_MAXDATA, UDP_MAXDATA, IP_MAXDATA etc
+
+ COPYRIGHT & PREAMBLE
+ - Rember to update copyright
+ - Ensure details of changes are added to change history

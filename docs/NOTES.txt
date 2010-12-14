@@ -1,0 +1,56 @@
+<b>Sometimes 'locks up' for a little bit.</b>
+Some functions have been made to block, such as waiting for ARP 
+replies.  If this is being implemented on a 
+multitasking OS, then task queues for things like ARP and DHCP 
+would be useful.
+
+<b>Why centiseconds?</b>
+Millisecond resolution seems like overkill to me, as it is only 
+used for timeouts in this appliction.  Generally a timer interrupt 
+is used, ms interrupts might spend more time interrupting than 
+doing anything useful.
+
+<b>Why aren't all features of the RFCs implemented correctly, if at all?</b>
+sIP is designed to be a very simple TCP/IP stack to help learn how the 
+protocol works, as well as being simple to port to other Media Access 
+Controllers, microcontrollers and processors.  Many advanced features 
+didn't seem worth including.  That said, sIP was designed to be easily 
+configurable, so if certain functionality is required, either let me 
+know, or have a go at implementing it yourself (please send in your 
+patch afterwards!)
+
+<b>What about IPv6</b>
+At present this is not implemented as I didn't see much use for it on 
+a system initialy intended for 8-bit microcontrollers.  I'd be happy 
+to add it if there is enough demand.  Donating some IPv6 networking 
+hardware for me to use for testing would certainly motivate me ;-)
+
+<b>What about other networking protocols</b>
+I have no intention of actively adding other protocols other than IPv4
+and possibly IPv6 in the future.  The code is easy to understand and easy 
+to add other protocols, so if you understand the protocol then adding it 
+shouldn't be too hard.  If there is enough interest in a particular 
+protocol then I will see about adding it, otherwise if you do it 
+yourself, please submit your patch to the project.
+
+<b>The security is weak</b>
+Yes, this is currently very true.  As mentioned elsewhere, this is a 
+very simple stack designed to show how TCP/IP works and provide simple
+and portable code.  It is not intended to be used on a public facing server
+(although it could very easily be adapted to be), besides, it was intended 
+for 8-bit microcontrollers with 10MHz clocks, don't expect DDoS prevention
+any time soon ;-)  Please help me document any weakneses found even if we
+cant fix them it will be educational.
+
+<b>Security flaws</b>
+Problems specific to sIP;
+ARP does not check if it originaly sent a request that it has a response for.
+ARP cannot deal with IP conflicts.
+ARP does not check the packet is from who it says it is from.
+
+<b>Coding Standards</b>
+Ideally the code should conform to some form of standard in order to help
+ensure it is maintainable and easy to read.  The code did not originally 
+conform to any such standard.  From now on, code will be (re)written to conform
+to the MISRA C coding standards.  Note that this code does not current comply
+with the standard.
