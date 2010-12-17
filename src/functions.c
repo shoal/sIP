@@ -23,8 +23,10 @@
  *	Description: General functions.
  *
  *  History
+ *	DB/16-12-10	Added home-brew memory functions, sr_memcmp,
+ *				sr_memset, sr_memcpy
  *	DB/05-12-10	Started
- ****************************************************/
+ ****************************************************************************/
 #include "functions.h"
 
 
@@ -48,11 +50,88 @@ uint16_t uint16_to_nbo(uint16_t val)
     {
     	/* Copy current value into single byte chunks */
         uint8_t rev[2] = {0};
-    	*(uint16_t*)&rev[0] = val;
+    	*(uint16_t*)rev = (uint16_t)val;
 
     	/* Put chunks back into whole value, backwards */
         val = (rev[0] << 8) | rev[1];
     }
 
     return val;
+}
+
+
+
+/****************************************************
+ *    Function: sr_memset
+ * Description: Set a chunk of memory to a known
+ *				value.
+ *
+ *	Input:
+ *		buffer	Start of a buffer (eg array[0])
+ *		value	Vale to write (eg 0x00)
+ *		len		Number of bytes to write
+ *
+ *	Return:
+ * 		void
+ ***************************************************/
+void sr_memset(uint8_t* buffer, uint8_t value, uint16_t len)
+{
+	len--; /* Take off one to turn into index */
+	for( ; len >= 0; len--)
+	{
+		buffer[len] = value;
+	}
+}
+
+
+/****************************************************
+ *    Function: sr_memcpy
+ * Description: Copy a chunk of memory from one 
+ *				buffer to another.
+ *
+ *	Input:
+ *		dest	Empty space
+ *		src		Values to write
+ *		len		Number of bytes to write
+ *
+ *	Return:
+ * 		void
+ ***************************************************/
+void sr_memcpy(uint8_t* dest, const uint8_t* src, uint16_t len)
+{
+	len--; /* Take off one to turn into index */
+	for( ; len >= 0; len--)
+	{
+		dest[len] = src[len];
+	}
+}
+
+/****************************************************
+ *    Function: sr_memcmp
+ * Description: Compare two buffers.
+ *
+ *		  NOTE:	Unlike standard memcmp, this function
+ *				returns either true or false, not 
+ *				-1, 0, 1.
+ *	Input:
+ *		buffa	Empty space
+ *		buffb	Values to write
+ *		len		Number of bytes to write
+ *
+ *	Return:
+ * 		true	Buffers match
+ *		false	Buffers do not match
+ ***************************************************/
+bool sr_memcmp(const uint8_t* buffa, const uint8_t* buffb, uint16_t len)
+{
+	len--; /* Take off one to turn into index (although it does mean we will search backwards) */
+	for( ; len >= 0; len--)
+	{
+		if(buffa[len] != buffb[len])
+		{
+			return false;
+		}
+	}
+
+	return true;
 }

@@ -23,15 +23,25 @@
  *	Description: General functions.
  *
  *  History
+ *	DB/16-12-10	Added home-grown sr_memset, sr_memcpy, sr_memcmp functions
  *	DB/05-12-10	Started
- ****************************************************/
+ ****************************************************************************/
 #ifndef FUNCTIONS_H_
 #define FUNCTIONS_H_
 
 #include "global.h"
 
-/* Convert a uint16_t to Network Byte Order (big endian) */
+/** Convert a uint16_t to Network Byte Order (big endian) **/
 uint16_t uint16_to_nbo(uint16_t val);
+
+/** Set a chunk of memory to a known value **/
+void sr_memset(uint8_t* buffer, uint8_t value, uint16_t len);
+
+/** Copy a chunk of data from one buffer to another **/
+void sr_memcpy(uint8_t* dest, const uint8_t* src, uint16_t len);
+
+/** Compare two buffers **/
+bool sr_memcmp(const uint8_t* buffa, const uint8_t* buffb, uint16_t len);
 
 
 #endif /* FUNCTIONS_H_ */
