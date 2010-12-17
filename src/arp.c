@@ -32,12 +32,17 @@
  *
  *
  *  History
+ *	DB/16-12-10	Removed linked list code in favour of fixed buffer.
+ *				Use home-grown sr_memset, sr_memcpy, sr_memcmp
+ *				Code now compiles (but probably doesnt work!) under avr-gcc.
  *	DB/24-10-09	Started
  ****************************************************/
 
 #include "stack_defines.h"
+#include "functions.h"
 #include "arp.h"
 #include "ethernet.h"
+#include "timer.h"
 #include "ip.h"	/* To get our IP address, even though this is not an IP based protocol. */
 
 
@@ -47,7 +52,7 @@ struct arp_element
 	uint8_t hw_addr[6];
 	uint8_t	ip_addr[4];
 	uint16_t timeout_id;
-	BOOL	valid;
+	bool valid;
 };
 static struct arp_element arp_table[ARP_TABLE_SIZE];
 
@@ -69,14 +74,24 @@ RETURN_STATUS init_arp()
 	uint16_t i = 0;
 	for(i = 0; i < ARP_TABLE_SIZE; i++)
 	{
-		arp_table[i].valid = FALSE;
+		arp_table[i].valid = false;
 		arp_table[i].timeout_id = 0;
-		arp_table[i].hw_addr = 0x000000;
-		arp_table[i].ip_addr = 0x0000;
+
+		arp_table[i].hw_addr[0] = 0;
+		arp_table[i].hw_addr[1] = 0;
+		arp_table[i].hw_addr[2] = 0;
+		arp_table[i].hw_addr[3] = 0;
+		arp_table[i].hw_addr[4] = 0;
+		arp_table[i].hw_addr[5] = 0;
+
+		arp_table[i].ip_addr[0] = 0;
+		arp_table[i].ip_addr[1] = 0;
+		arp_table[i].ip_addr[2] = 0;
+		arp_table[i].ip_addr[3] = 0;
 	}
 
 	// Add callback for any ARP packets.
-	return add_ether_packet_callback(ARP_TYPE, &arp_arrival_callback);
+	return add_ether_packet_callback(ARP, &arp_arrival_callback);
 }
 
 
@@ -99,7 +114,7 @@ RETURN_STATUS init_arp()
  *	Return:
  * 		SUCCESS		probably.
  ***************************************************/
-RETURN_STATUS add_arp_entry(const uint8_t hw_addr[6], const uint8_t ip4_addr[4], uint32_t timeout, BOOL valid)
+RETURN_STATUS add_arp_entry(const uint8_t hw_addr[6], const uint8_t ip4_addr[4], uint32_t timeout, bool valid)
 {
 
 	/* Iterate through ARP table to find a free slot */
@@ -107,7 +122,7 @@ RETURN_STATUS add_arp_entry(const uint8_t hw_addr[6], const uint8_t ip4_addr[4],
 	for(i = 0; i < ARP_TABLE_SIZE; i++)
 	{
 		/* Found one so check it is OK then set the data */
-		if(arp_table[i].valid == FALSE && arp_table[i].timeout_id == 0)
+		if(arp_table[i].valid == false && arp_table[i].timeout_id == 0)
 		{
 			arp_table[i].timeout_id = add_timer(timeout, &arp_timeout_callback);
 			if(arp_table[i].timeout_id == TIMER_ERROR)
@@ -115,8 +130,8 @@ RETURN_STATUS add_arp_entry(const uint8_t hw_addr[6], const uint8_t ip4_addr[4],
 				return FAILURE;
 			}
 
-			memcpy(arp_table[i].hw_addr, hw_addr, 6);
-			memcpy(arp_table[i].ip_addr, ip4_addr, 4);
+			sr_memcpy(arp_table[i].hw_addr, hw_addr, 6);
+			sr_memcpy(arp_table[i].ip_addr, ip4_addr, 4);
 			arp_table[i].valid = valid;
 
 			/* Assume all OK */
@@ -166,20 +181,20 @@ RETURN_STATUS add_arp_entry(const uint8_t hw_addr[6], const uint8_t ip4_addr[4],
 RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 {
 
-	BOOL cached_exists = FALSE;
+	bool cached_exists = false;
 	uint16_t cached_index = 0;
 
 	uint16_t i = 0;
 	for(i = 0; i < ARP_TABLE_SIZE; i++)
 	{
-		if( memcmp( arp_table[i].ip_addr, ip4_addr, 4) == 0)
+		if( sr_memcmp( arp_table[i].ip_addr, ip4_addr, 4) == true)
 		{
-			cached_exists = TRUE;
+			cached_exists = true;
 			cached_index = i;
 
-			if(arp_table[i].valid == TRUE)
+			if(arp_table[i].valid == true)
 			{
-				memcpy(hw_addr, arp_table[i].hw_addr, 6);
+				sr_memcpy(hw_addr, arp_table[i].hw_addr, 6);
 
 				return SUCCESS;
 			}
@@ -190,9 +205,9 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 
 
 	/* Add an ARP entry if there isn't one already. */
-	if(cached_exists == FALSE)
+	if(cached_exists == false)
 	{
-		if(add_arp_entry(0x000000, ip4_addr, ARP_DEFAULT_TIMEOUT, FALSE) != SUCCESS)
+		if(add_arp_entry(0x000000, ip4_addr, ARP_DEFAULT_TIMEOUT, false) != SUCCESS)
 		{
 			return FAILURE;
 		}
@@ -200,22 +215,20 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 		/* Find ourselves again */
 		for(i = 0; i < ARP_TABLE_SIZE; i++)
 		{
-			if( memcmp( arp_table[i].ip_addr, ip4_addr, 4) == 0)
+			if( sr_memcmp( arp_table[i].ip_addr, ip4_addr, 4) == true)
 			{
-				cached_exists = TRUE;
+				cached_exists = true;
 				cached_index = i;
 			}
 		}
 
-		if(cached_exists == FALSE)
+		if(cached_exists == false)
 		{
 			return FAILURE;
 		}
 	}
 
 	/* Now we have an arp entry and need to put some correct data into it. */
-
-	int i;
 	for(i = 0; i < ARP_REQ_ATTEMPTS; i++)
 	{
 		// Build packet
@@ -240,31 +253,31 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 
 		/* Address lengths, hardware & protocol */
 		arp_request[4] = (uint8_t)ARP_HLN;
-		arp_request[5] = (uint8_t)ARP_PLN;
+		arp_request[5] = (uint8_t)ARP_PRO;
 
 		arp_request[6] = (uint8_t)(ARP_REQUEST >> 8);
 		arp_request[7] = (uint8_t)(ARP_REQUEST);
 
-		memcpy(&arp_request[8], local_hw_addr, 6);
-		memcpy(&arp_request[14], local_ip_addr, 4);
-		memcpy(&arp_request[18], bcast_ether_addr, 6); // Broadcast.
-		memcpy(&arp_request[24], ip4_addr, 4);
+		sr_memcpy(&arp_request[8], local_hw_addr, 6);
+		sr_memcpy(&arp_request[14], local_ip_addr, 4);
+		sr_memcpy(&arp_request[18], bcast_ether_addr, 6); // Broadcast.
+		sr_memcpy(&arp_request[24], ip4_addr, 4);
 
 
 		/* Finally send...*/
-		send_ether_packet(bcast_ether_addr, &arp_request, ARP_LEN, ARP);
+		send_ether_packet(bcast_ether_addr, arp_request, ARP_LEN, ARP);
 
 
 		/* Set up timeout to wait for reply (poll it, don't bother about interrupts) */
 		uint16_t timer = add_timer(ARP_REPLY_TIMEOUT, NULL);
-		while(is_running(timer) == TRUE)
+		while(is_running(timer) == true)
 		{
 			/* Has value become true?? */
-			if(arp_table[cached_index].valid == TRUE)
+			if(arp_table[cached_index].valid == true)
 			{
-				memcpy(ip4_addr, &arp_table[cached_index].ip_addr[0], 4);
+				sr_memcpy(&arp_table[cached_index].ip_addr[0], ip4_addr, 4);
 
-				kill_timer(timer, FALSE);
+				kill_timer(timer, false);
 
 				return SUCCESS;
 			}
@@ -273,8 +286,8 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 	}
 
 	/* ARP request failed.  Make it timeout */
-	arp_table[i].valid = FALSE;
-	kill_timer(arp_table[i].timeout_id, FALSE);
+	arp_table[i].valid = false;
+	kill_timer(arp_table[i].timeout_id, false);
 	arp_table[i].timeout_id = 0;
 
 	return FAILURE;
@@ -317,7 +330,7 @@ void arp_arrival_callback(const uint8_t *buffer, const unsigned int buffer_len)
 		return;
 	if(hw_addr_len != ARP_HLN)
 		return;
-	if(proto_addr_len != ARP_PLN)
+	if(proto_addr_len != ARP_PRO)
 		return;
 
 
@@ -330,7 +343,7 @@ void arp_arrival_callback(const uint8_t *buffer, const unsigned int buffer_len)
 	// Only bother doing anything if it is targeted at us;
 	uint8_t local_prot_addr[4]; // Our real IP.
 	get_ipv4_addr(local_prot_addr);
-	if(memcmp(target_prot_addr, local_prot_addr, 4) != 0)
+	if(sr_memcmp(target_prot_addr, local_prot_addr, 4) == false)
 	{
 		return;
 	}
@@ -342,7 +355,7 @@ void arp_arrival_callback(const uint8_t *buffer, const unsigned int buffer_len)
 
 		// Someone has replied to the request we (may have) sent.
 		// If not treat is as gratuitous
-		add_arp_entry(src_hw_addr, src_prot_addr, ARP_DEFAULT_TIMEOUT, TRUE);
+		add_arp_entry(src_hw_addr, src_prot_addr, ARP_DEFAULT_TIMEOUT, true);
 		break;
 
 	case ARP_REQUEST:
@@ -355,35 +368,35 @@ void arp_arrival_callback(const uint8_t *buffer, const unsigned int buffer_len)
 
 
 		/* Hardware */
-		arp_request[0] = (uint8_t)(ARP_HRD >> 8);
-		arp_request[1] = (uint8_t)(ARP_HRD);
+		response_packet[0] = (uint8_t)(ARP_HRD >> 8);
+		response_packet[1] = (uint8_t)(ARP_HRD);
 
 		/* Resolve protocol type (NOTE: only bother with IPv4 here)*/
-		arp_request[2] = (uint8_t)(IPv4 >> 8);
-		arp_request[3] = (uint8_t)(IPv4);
+		response_packet[2] = (uint8_t)(IPv4 >> 8);
+		response_packet[3] = (uint8_t)(IPv4);
 
 		/* Address lengths, hardware & protocol */
-		arp_request[4] = (uint8_t)ARP_HLN;
-		arp_request[5] = (uint8_t)ARP_PLN;
+		response_packet[4] = (uint8_t)ARP_HLN;
+		response_packet[5] = (uint8_t)ARP_PRO;
 
-		arp_request[6] = (uint8_t)(ARP_REPLY >> 8);
-		arp_request[7] = (uint8_t)(ARP_REPLY);
+		response_packet[6] = (uint8_t)(ARP_REPLY >> 8);
+		response_packet[7] = (uint8_t)(ARP_REPLY);
 
 
 		// Our Ethernet/hw addr.
 		uint8_t local_hw_addr[6];
 		get_ether_addr(local_hw_addr);
-		memcpy(&response_packet[8], local_hw_addr, 6);
+		sr_memcpy(&response_packet[8], local_hw_addr, 6);
 
 		// Our IP (using the one they sent is easier).
-		memcpy(&response_packet[14], &buffer[24], 4);
+		sr_memcpy(&response_packet[14], &buffer[24], 4);
 
 		// Set target to them (previous source)
-		memcpy(&response_packet[18], &buffer[8], 6);
-		memcpy(&response_packet[24], &buffer[14], 4);
+		sr_memcpy(&response_packet[18], &buffer[8], 6);
+		sr_memcpy(&response_packet[24], &buffer[14], 4);
 
 		// Send the packet.
-		send_ether_packet(src_hw_addr, &response_packet, ARP_LEN, ARP);
+		send_ether_packet(src_hw_addr, response_packet, ARP_LEN, ARP);
 
 		break;
 	default:
@@ -397,7 +410,8 @@ void arp_arrival_callback(const uint8_t *buffer, const unsigned int buffer_len)
  * Description: Callback for when a packet with ARP
  * 				timeout is reached.
  *
- *		 NOTE: When timer expires it is dead.
+ *				Remove the table entry, if it is still
+ *				in use then a new request will be issued.
  *
  *
  *	Input:
@@ -409,17 +423,15 @@ void arp_arrival_callback(const uint8_t *buffer, const unsigned int buffer_len)
 void arp_timeout_callback(const uint16_t ident)
 {
 	/* Find the node based on timer ID (1:1) */
-	struct arp_table current = arp_table_head;
-	while(current != NULL && current->timeout_id != ident)
+	int i = 0;
+	for(i = 0; i < ARP_TABLE_SIZE; i++)
 	{
-		current = current->next;
-	}
+		if(arp_table[i].timeout_id == ident)
+		{
+			remove_arp_entry(arp_table[i].ip_addr, arp_table[i].hw_addr);
 
-	/* Renew ARP by re-resolving */
-	if(current != NULL)
-	{
-		uint8_t hw_addr[6];
-		resolve_ether_addr(current->ip_addr, &hw_addr);
+			break;
+		}
 	}
 }
 
@@ -435,33 +447,19 @@ void arp_timeout_callback(const uint16_t ident)
  * 		SUCCESS
  * 		FAILURE
  ***************************************************/
-RETURN_RESULT remove_arp_entry(const struct arp_table* node)
+void remove_arp_entry(uint8_t* hw_addr, uint8_t* ip4_addr)
 {
-	struct arp_table* current = arp_table_head;
-
-	/* Dont bother if we're given duff info */
-	if(node == NULL)
+	int i = 0;
+	for(i = 0; i < ARP_TABLE_SIZE; i++)
 	{
-		return FAILURE;
+		if( (sr_memcmp( arp_table[i].ip_addr, ip4_addr, 4) == true)
+		   || (sr_memcmp( arp_table[i].hw_addr, hw_addr, 6) == true))
+		{
+			sr_memset(arp_table[i].ip_addr, 0x00, 4);
+			sr_memset(arp_table[i].hw_addr, 0x00, 6);
+			arp_table[i].valid = false;
+			arp_table[i].timeout_id = 0;
+		}
 	}
-
-	/* Loop through until we find a node worth looking at */
-	while(current->next != node && current->next != NULL)
-	{
-		current = current->next;
-	}
-
-	/* Make sure we aren't working on a node that doesn't exist */
-	if(current->next == NULL)
-	{
-		return FAILURE;
-	}
-	//else
-
-	/* Update the table and free old node*/
-	current->next = node->next;
-	free(node);
-
-	return SUCCESS;
 }
 

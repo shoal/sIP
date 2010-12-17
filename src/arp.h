@@ -31,6 +31,7 @@
  *				 obscure networking that we wont have.
  *
  *  History
+ *	DB/16-12-10	Added remove_arp_entry
  *	DB/24-10-09	Started
  ****************************************************/
 
@@ -66,7 +67,10 @@ enum opcodes
 RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6]);
 
 /** Add an ARP entry. **/
-RETURN_STATUS add_arp_entry(const uint8_t hw_addr[6], const uint8_t ip4_addr[4], uint32_t timeout, BOOL valid);
+RETURN_STATUS add_arp_entry(const uint8_t hw_addr[6], const uint8_t ip4_addr[4], uint32_t timeout, bool valid);
+
+/** Remove an ARP entry **/
+void remove_arp_entry(uint8_t* hw_addr, uint8_t* ip4_addr);
 
 /** ARP packet arrival callback **/
 void arp_arrival_callback(const uint8_t *buffer, const uint16_t buffer_len);
