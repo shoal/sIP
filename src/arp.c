@@ -311,7 +311,7 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
  *	Return:
  * 		NONE
  ***************************************************/
-void arp_arrival_callback(const uint8_t *buffer, const unsigned int buffer_len)
+void arp_arrival_callback(const uint8_t *buffer, const uint16_t buffer_len)
 {
 	if(buffer_len < ARP_LEN)
 	{

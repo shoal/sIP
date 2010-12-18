@@ -76,6 +76,10 @@
 #define ETH_MAXDATA			3000
 #endif
 
+#ifndef ETH_MINDATA
+#define ETH_MINDATA			36	//TODO - check
+#endif
+
 /* Where the preamble ends in the Ethernet header */
 #ifndef ETH_PREAMBLELEN
 #define ETH_PREAMBLELEN		8

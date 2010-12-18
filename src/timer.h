@@ -38,13 +38,13 @@
 RETURN_STATUS init_timer();
 
 /** Create a timer */
-uint16_t add_timer(uint32_t ms, void(*handler)(uint16_t) = NULL);
+uint16_t add_timer(uint32_t ms, void(*handler)(uint16_t));
 
 /** Kill a timer */
-RETURN_STATUS kill_timer(uint16_t id, BOOL fire_timeout);
+RETURN_STATUS kill_timer(uint16_t id, bool fire_timeout);
 
 /** Find out if a timer is running */
-BOOL is_running(uint16_t id);
+bool is_running(uint16_t id);
 
 /** Get notified whenever the micro ticks */
 void timer_tick_callback();

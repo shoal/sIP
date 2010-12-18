@@ -24,18 +24,19 @@
  *
  *
  *  History
+ *	DB/17 Dec 2010	Updated to compile with gcc4 (but probably doesnt work!)
  *	DB/06 Oct 2010	Started
- ****************************************************/
+ ****************************************************************************/
 
 #include "stack_defines.h"
 #include "timer.h"
 #include "link_uc.h"
 
-enum timer_status
+enum timer_status_t
 {
 	TIMER_EMPTY,
 	TIMER_RUNNING,
-	TIMER_PAUSED
+	TIMER_PAUSED,
 };
 
 /** Keep track of timers */
@@ -44,10 +45,10 @@ struct timer_element
 	/*TODO: Should any of these be volatile, as they
 	 * will be updated in an interrupt callback. */
 	uint16_t timeout;
-	timer_status_t status;
+	enum timer_status_t status;
 	void(*callback)(uint16_t);
 };
-static struct timer_element timer_store[TIMER_COUNT];
+struct timer_element timer_store[TIMER_COUNT];
 
 /****************************************************
  *    Function: init_timer
@@ -74,7 +75,7 @@ RETURN_STATUS init_timer()
 	 * Register a timer tick callback with the micro,
 	 * so that we are notified every ms.
 	 */
-	register_ms_callback(&timer_tick_callback());
+	register_ms_callback(&timer_tick_callback);
 
 	return SUCCESS;
 }
@@ -137,11 +138,11 @@ uint16_t add_timer(uint32_t ms, void(*handler)(uint16_t))
  * 		SUCCESS	Timer removed
  * 		FAILURE Timer not found
  ***************************************************/
-RETURN_STATUS kill_timer(uint16_t id, BOOL fire_timeout)
+RETURN_STATUS kill_timer(uint16_t id, bool fire_timeout)
 {
-	if(timer_store[id].timeout != 0 && timer_store[i].status != TIMER_EMPTY)
+	if(timer_store[id].timeout != 0 && timer_store[id].status != TIMER_EMPTY)
 	{
-		timer_store[i].status = TIMER_EMPTY;
+		timer_store[id].status = TIMER_EMPTY;
 		timer_store[id].timeout = 0;
 	}
 	else
@@ -172,16 +173,16 @@ RETURN_STATUS kill_timer(uint16_t id, BOOL fire_timeout)
  * 		TRUE	Timer is active
  * 		FALSE	Timer is not active
  ***************************************************/
-BOOL is_running(uint16_t id)
+bool is_running(uint16_t id)
 {
 
 	if(timer_store[id].status == TIMER_RUNNING)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -209,7 +210,7 @@ void timer_tick_callback()
 		{
 			timer_store[i].timeout--;
 
-			if(timer_store[i] == 0 )
+			if(timer_store[i].timeout == 0 )
 			{
 				timer_store[i].callback(i);
 				timer_store[i].status = TIMER_EMPTY;

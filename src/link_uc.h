@@ -41,7 +41,7 @@
 #include "global.h"
 
 /** MAC chip select **/
-RETURN_STATUS mac_cs(BOOL chip_enable);
+RETURN_STATUS mac_cs(bool chip_enable);
 
 /** Initialise IC **/
 RETURN_STATUS init_link();

@@ -24,8 +24,9 @@
  *				 payload to the correct handler.
  *
  *  History
+ *	DB/17-12-10	Compiles with gcc4 (but probably doesnt work!)
  *	DB/24-10-09	Started
- ****************************************************/
+ **************************************************************************/
 
 #include "stack_defines.h"
 #include "ethernet.h"
@@ -37,7 +38,7 @@
 /** Keep track of who wants what data. **/
 struct ether_packet_callback_element
 {
-  void (*fn_callback)(const uint8_t *buffer, const unsigned int buffer_len);
+  void (*fn_callback)(const uint8_t *buffer, const uint16_t buffer_len);
   ETHERNET_TYPE required_type;
 };
 static struct ether_packet_callback_element ether_packet_callbacks[ETHER_CALLBACK_SIZE];
@@ -69,8 +70,8 @@ RETURN_STATUS init_ethernet(uint8_t addr[6])
 		ether_packet_callbacks[i].required_type = INVALID;
 	}
 
-	/* Save our IP. */
-	memcpy(ethernet_addr, addr, 6);
+	/* Save our MAC. */
+	sr_memcpy(ethernet_addr, addr, 6);
 
 	/* Init everything else */
 	if(init_us() != SUCCESS)
@@ -81,7 +82,7 @@ RETURN_STATUS init_ethernet(uint8_t addr[6])
 	{
 		return FAILURE;
 	}
-	if(set_frame_complete(&frame_available) != SUCCESS)
+	if(set_frame_complete(&ether_frame_available) != SUCCESS)
 	{
 		return FAILURE;
 	}
@@ -100,7 +101,7 @@ RETURN_STATUS init_ethernet(uint8_t addr[6])
  *	Return:
  * 		SUCCESS
  ***************************************************/
-RETURN_STATUS get_ether_addr(uint8_t const *addr)
+RETURN_STATUS get_ether_addr(const uint8_t *addr)
 {
 	addr = ethernet_addr;
 
@@ -109,7 +110,7 @@ RETURN_STATUS get_ether_addr(uint8_t const *addr)
 
 
 /****************************************************
- *    Function: add_packet_callback
+ *    Function: add_ether_packet_callback
  * Description: Adds a callback for a particular
  * 				packet type.
  *
@@ -125,7 +126,7 @@ RETURN_STATUS get_ether_addr(uint8_t const *addr)
  * 		SUCCESS			callback added
  * 		FAILURE			not added
  ***************************************************/
-RETURN_STATUS add_ether_packet_callback(ETHERNET_TYPE packet_type, void (*handler)(const uint8_t *buffer, const unsigned int buffer_len))
+RETURN_STATUS add_ether_packet_callback(ETHERNET_TYPE packet_type, void (*handler)(const uint8_t *buffer, const uint16_t buffer_len))
 {
 	uint8_t i = 0;
 	for(i = 0; i < ETHER_CALLBACK_SIZE; i++)
@@ -157,10 +158,10 @@ RETURN_STATUS add_ether_packet_callback(ETHERNET_TYPE packet_type, void (*handle
  *	Return:
  * 		SUCCESS			callback removed, if it existed.
  ***************************************************/
-RETURN_STATUS remove_ether_packet_callback(ETHERNET_TYPE packet_type, void (*handler)(const uint8_t *buffer, const unsigned int buffer_len))
+RETURN_STATUS remove_ether_packet_callback(ETHERNET_TYPE packet_type, void (*handler)(const uint8_t *buffer, const uint16_t buffer_len))
 {
 	uint8_t i;
-	BOOL bFound = FALSE;
+	bool bFound = false;
 	for(i = 0; i < ETHER_CALLBACK_SIZE; i++)
 	{
 		if(ether_packet_callbacks[i].required_type == packet_type && ether_packet_callbacks[i].fn_callback == handler)
@@ -168,7 +169,7 @@ RETURN_STATUS remove_ether_packet_callback(ETHERNET_TYPE packet_type, void (*han
 			ether_packet_callbacks[i].required_type == INVALID;
 			ether_packet_callbacks[i].fn_callback = NULL;
 
-			bFound = TRUE;
+			bFound = true;
 		}
 	}
 
@@ -188,7 +189,7 @@ RETURN_STATUS remove_ether_packet_callback(ETHERNET_TYPE packet_type, void (*han
  *	Return:
  * 		NONE
  ***************************************************/
-void ether_frame_available(uint8_t *buffer, unsigned int buffer_len)
+void ether_frame_available(uint8_t *buffer, uint16_t buffer_len)
 {
 	// NOTE: This could technically be a
 	// length, but we are using standard protocols.
@@ -269,7 +270,7 @@ RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffe
 	eth_buffer[19] = ethernet_addr[0];
 
 	/* Type (or length if not protocol) */
-	(uint16_t)&eth_buffer[20] = type;
+	*(uint16_t*)&eth_buffer[20] = uint16_to_nbo(type);
 
 	/* Copy across data & padding */
 	uint16_t i = 0;
@@ -294,13 +295,14 @@ RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffe
 	 */
 #ifndef ETH_SKIP_CRC
 	// TODO CRC checksum
-	(uint32_t)&eth_buffer[eth_buffer_len - ETH_CRCLEN] = 0x04C11DB7;
+	//TODO needs endian-ness check!
+	*(uint32_t*)&eth_buffer[eth_buffer_len - ETH_CRCLEN] = 0x04C11DB7;
 
 #warning "Ethernet CRC calculated in software."
 #else
-	(uint32_t)&eth_buffer[eth_buffer_len - ETH_CRCLEN] = 0x00000000;
+	*(uint32_t*)&eth_buffer[eth_buffer_len - ETH_CRCLEN] = 0x00000000;
 #endif
 
-	return send_frame(&eth_buffer, eth_buffer_len);
+	return send_frame(eth_buffer, eth_buffer_len);
 
 }

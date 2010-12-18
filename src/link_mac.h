@@ -39,12 +39,12 @@
 RETURN_STATUS init_mac();
 
 /** Pass in a complete frame to drop onto the wire */
-RETURN_STATUS send_frame(const uint8_t *buffer, const uint8_t buffer_len);
+RETURN_STATUS send_frame(uint8_t *buffer, const uint8_t buffer_len);
 
 /** Callback for all received data. **/
 void recv_frame_bytes(uint8_t next_byte);
 
 /** Callback to next layer when we have a whole packet */
-void (*frame_complete)(const uint8_t *buffer, const unsigned int buffer_len);
-RETURN_STATUS set_frame_complete(void (*frame_complete_callback)(const uint8_t *buffer, const unsigned int buffer_len));
+void (*frame_complete)(const uint8_t *buffer, const uint16_t buffer_len);
+RETURN_STATUS set_frame_complete(void (*frame_complete_callback)(uint8_t *buffer, const uint16_t buffer_len));
 #endif
