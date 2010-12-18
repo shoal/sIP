@@ -36,7 +36,7 @@
 RETURN_STATUS init_udp();
 
 /** Send some data */
-RETURN_STATUS send_udp(const uint16_t* dest_addr, const uint8_t port, const uint8_t* buffer, const uint16_t buffer_len);
+RETURN_STATUS send_udp(const uint8_t* dest_addr, const uint16_t port, const uint8_t* buffer, const uint16_t buffer_len);
 
 /** Start listening to a port */
 RETURN_STATUS listen_udp(const uint16_t port, void(*handler)(const uint8_t* buffer, const uint16_t buffer_len));

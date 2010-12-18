@@ -24,8 +24,9 @@
  *
  *
  *  History
+ *	DB/18 Dec 2010	Changed to compile with gcc4 (but probably wont work!)
  *	DB/06 Oct 2010	Started
- ****************************************************/
+ ****************************************************************************/
 
 #include "stack_defines.h"
 #include "udp.h"
@@ -131,7 +132,7 @@ RETURN_STATUS close_udp(uint16_t port)
 {
 	/* Find node for port */
 	uint8_t i = 0;
-	BOOL nodes_found = FALSE;
+	bool nodes_found = false;
 	for(i = 0; i < UDP_LISTEN_SIZE; i++)
 	{
 		if(udp_callbacks[i].port == port)
@@ -139,11 +140,11 @@ RETURN_STATUS close_udp(uint16_t port)
 			udp_callbacks[i].port = 0;
 			udp_callbacks[i].callback_fn = NULL;
 
-			nodes_found = TRUE;
+			nodes_found = true;
 		}
 	}
 
-	if(nodes_found == TRUE)
+	if(nodes_found == true)
 	{
 		return SUCCESS;
 	}
@@ -213,7 +214,7 @@ void udp_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len)
  * 		SUCCESS
  * 		FAILURE		Max packet length or send failure
  ***************************************************/
-RETURN_STATUS send_udp(const uint32_t* dest_addr, const uint16_t port, const uint8_t* buffer, const uint16_t buffer_len)
+RETURN_STATUS send_udp(const uint8_t* dest_addr, const uint16_t port, const uint8_t* buffer, const uint16_t buffer_len)
 {
 	/* Build header:
 	 *
@@ -248,11 +249,11 @@ RETURN_STATUS send_udp(const uint32_t* dest_addr, const uint16_t port, const uin
 	uint8_t udp_packet[UDP_MAX_PACKET];
 
 	/* Port */
-	(uint16_t)&udp_packet[0] = port;
-	(uint16_t)&udp_packet[2] = port;
+	*(uint16_t*)&udp_packet[0] = uint16_to_nbo(port);
+	*(uint16_t*)&udp_packet[2] = uint16_to_nbo(port);
 
 	/* Length */
-	(uint16_t)&udp_packet[4] = udp_packet_len;
+	*(uint16_t*)&udp_packet[4] = uint16_to_nbo(udp_packet_len);
 
 	/*
 	 * Checksum
@@ -272,13 +273,13 @@ RETURN_STATUS send_udp(const uint32_t* dest_addr, const uint16_t port, const uin
 	 *
 	 */
 
-	(uint16_t)&udp_packet[6] = 0x0000; /* Initialise to 0 */
+	*(uint16_t*)&udp_packet[6] = 0x0000; /* Initialise to 0 - NOTE uint16_to_nbo!*/
 
-	uint32_t checksum = 0;
+	uint32_t checksum = 0;	//TODO - is this meant to be 32bit?
 
 	/* Checksum the pseudo-header */
-	checksum += dest_addr;
-	checksum += (dest_addr >> 16);
+	checksum += *dest_addr;
+	checksum += (*dest_addr >> 16);
 
 	checksum += get_ipv4_addr();
 	checksum += (get_ipv4_addr() >> 16);
@@ -289,12 +290,12 @@ RETURN_STATUS send_udp(const uint32_t* dest_addr, const uint16_t port, const uin
 
 	/* Checksum the real header & data */
 	//TODO: generate checksum correctly
-//	uint32_t temp_len = udp_packet_len;
-	while(temp_len >= 2)
-	{
+//	uint16_t temp_len = udp_packet_len;
+//	while(temp_len >= 2)
+//	{
 //		temp_len -= 2;
-	}
-	(uint16_t)&udp_packet[6] = 0x0000;
+//	}
+	*(uint16_t*)&udp_packet[6] = 0x0000; //NOTE: uint16_to_nbo
 
 
 	/* Ones complement everything */
@@ -303,10 +304,9 @@ RETURN_STATUS send_udp(const uint32_t* dest_addr, const uint16_t port, const uin
 
 
 	/* Data */
-	memcpy(&udp_packet[8], buffer, buffer_len);
+	sr_memcpy(&udp_packet[8], buffer, buffer_len);
 
 	/* Wrap it up in an IP packet for sending */
-	RETURN_RESULT send_res = send_ip4_datagram(dest_addr, &udp_packet, udp_packet_len, IP_UDP);
+	return send_ip4_datagram(dest_addr, udp_packet, udp_packet_len, IP_UDP);
 
-	return send_res;
 }
