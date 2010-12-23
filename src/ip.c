@@ -24,12 +24,14 @@
  *
  *
  *  History
+ *	DB/21 Dec 2010	Added get_ipv4_addr
  *	DB/14 Oct 2010	Started
  ****************************************************/
 #include "stack_defines.h"
 #include "ethernet.h"
 #include "ip.h"
 #include "functions.h"
+#include "arp.h"
 
 /** Keep track of who to call when a packet arrives **/
 struct ip_callback_element
@@ -87,6 +89,26 @@ RETURN_STATUS set_ipv4_addr(uint8_t addr[4])
 }
 
 /****************************************************
+ *    Function: get_ipv4_addr
+ * Description: Return our IP address
+ *
+ *	Input:
+ * 		uint8_t*		IP address
+ *
+ *	Return:
+ * 		SUCCESS - hopefully.
+ ***************************************************/
+RETURN_STATUS get_ipv4_addr(uint8_t *addr)
+{
+	addr[0] = ip_addr[0];
+	addr[1] = ip_addr[1];
+	addr[2] = ip_addr[2];
+	addr[3] = ip_addr[3];
+
+	return SUCCESS;
+}
+
+/****************************************************
  *    Function: send_ip4_datagram
  * Description: Send IP packet
  *
@@ -111,7 +133,7 @@ RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const ui
 		return FAILURE;
 	}
 
-	char data[IP_MAX_PACKET + IP_HEADERLEN] = {0};
+	uint8_t data[IP_MAX_PACKET + IP_HEADERLEN] = {0};
 
 	data[0] = 0x45; /* 4 in high nibble = IPv4.  5 = length of header */
 	data[1] = 0x00;	/* Normal traffic */
@@ -156,7 +178,7 @@ RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const ui
 	}
 	else
 	{
-		return send_ether_packet(dest_ether, &data[0], buff_len + IP_HEADERLEN, IPv4);
+		return send_ether_packet(dest_ether, data, buff_len + IP_HEADERLEN, IPv4);
 	}
 
 }
