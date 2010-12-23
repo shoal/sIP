@@ -32,6 +32,7 @@
 #include "ethernet.h"
 #include "link_mac.h"
 #include "link_uc.h"
+#include "functions.h"
 
 
 
@@ -74,7 +75,7 @@ RETURN_STATUS init_ethernet(uint8_t addr[6])
 	sr_memcpy(ethernet_addr, addr, 6);
 
 	/* Init everything else */
-	if(init_us() != SUCCESS)
+	if(init_link() != SUCCESS)
 	{
 		return FAILURE;
 	}
@@ -166,7 +167,7 @@ RETURN_STATUS remove_ether_packet_callback(ETHERNET_TYPE packet_type, void (*han
 	{
 		if(ether_packet_callbacks[i].required_type == packet_type && ether_packet_callbacks[i].fn_callback == handler)
 		{
-			ether_packet_callbacks[i].required_type == INVALID;
+			ether_packet_callbacks[i].required_type = INVALID;
 			ether_packet_callbacks[i].fn_callback = NULL;
 
 			bFound = true;
