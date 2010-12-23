@@ -23,6 +23,7 @@
  *	Description: Handles all IPv4 data.
  *
  *  History
+ *	DB/21 Dec 2010	Added get_ipv4_addr
  *	DB/30 Oct 2009	Started
  ****************************************************/
 
@@ -42,6 +43,9 @@ RETURN_STATUS init_ip();
 
 /** Set our IP address **/
 RETURN_STATUS set_ipv4_addr(uint8_t addr[4]);
+
+/** Get our IP address **/
+RETURN_STATUS get_ipv4_addr(uint8_t *addr);
 
 /** Send datagram **/
 RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const uint16_t buff_len, IP_TYPE type);
