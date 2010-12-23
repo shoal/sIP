@@ -24,6 +24,7 @@
  *
  *
  *  History
+ *	DB/21 Dec 2010	Added UDP checksum to outgoing packets
  *	DB/18 Dec 2010	Changed to compile with gcc4 (but probably wont work!)
  *	DB/06 Oct 2010	Started
  ****************************************************************************/
@@ -31,6 +32,7 @@
 #include "stack_defines.h"
 #include "udp.h"
 #include "ip.h" // The layer below.
+#include "functions.h"
 
 
 /* Keep track of who is listening to what port */
@@ -176,7 +178,7 @@ void udp_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len)
 	 * wants the data and forward it on to them.
 	 */
 
-	/* TODO: Check the UDP checksum */
+	/* TODO: Check the UDP checksum - assume it is right for now.*/
 
 	/*
 	 * Find out who is listening to the port.
@@ -260,7 +262,14 @@ RETURN_STATUS send_udp(const uint8_t* dest_addr, const uint16_t port, const uint
 	 *
 	 * Ones complement of IP pseudo-header, UDP header and data.
 	 *
-	 * Pseudo header:
+	 */
+
+	*(uint16_t*)&udp_packet[6] = 0x0000; /* Initialise checksum to 0*/
+
+	/* Use a 32bit sum because the carries need to be added to the 16bit result. */
+	uint32_t checksum = 0;
+	/*
+	 * Checksum the pseudo-header:
 	 *
 	 *      0      7 8     15 16    23 24    31
      *     +--------+--------+--------+--------+
@@ -272,34 +281,51 @@ RETURN_STATUS send_udp(const uint8_t* dest_addr, const uint16_t port, const uint
      *     +--------+--------+--------+--------+
 	 *
 	 */
+	uint8_t local_addr[4];
+	get_ipv4_addr(local_addr);
+	checksum += (local_addr[0] << 8) | (local_addr[1]);
+	checksum += (local_addr[2] << 8) | (local_addr[3]);
 
-	*(uint16_t*)&udp_packet[6] = 0x0000; /* Initialise to 0 - NOTE uint16_to_nbo!*/
+	checksum += (dest_addr[0] << 8) | (dest_addr[1]);
+	checksum += (dest_addr[2] << 8) | (dest_addr[3]);
 
-	uint32_t checksum = 0;	//TODO - is this meant to be 32bit?
+	checksum += IP_UDP;
+	checksum += udp_packet_len;
 
-	/* Checksum the pseudo-header */
-	checksum += *dest_addr;
-	checksum += (*dest_addr >> 16);
 
-	checksum += get_ipv4_addr();
-	checksum += (get_ipv4_addr() >> 16);
+	/*
+	 * Now checksum the real header & data
+	 * 16bits at a time
+	 */
+	uint16_t i = 0;
+	for(i = 0; i <= udp_packet_len - 2; i+=2)
+	/* ; (...<=...-2...) to compensate for odd length packets */
+	{
+		checksum += (udp_packet[i] << 8) | (udp_packet[i+1]);
+	}
 
-	checksum += 0x00;
-	checksum + IP_UDP;
-	checksum + udp_packet_len;
+	/* If the packet contains an odd number of bytes
+	 * add a blank padding byte */
+	if(udp_packet_len & 1)
+	{
+		checksum += (udp_packet[udp_packet_len-1] << 8) & 0xFF00;
+	}
 
-	/* Checksum the real header & data */
-	//TODO: generate checksum correctly
-//	uint16_t temp_len = udp_packet_len;
-//	while(temp_len >= 2)
-//	{
-//		temp_len -= 2;
-//	}
-	*(uint16_t*)&udp_packet[6] = 0x0000; //NOTE: uint16_to_nbo
-
+	/* Convert to 16bit (truncate) then add the carry bits.*/
+	checksum = (checksum & 0x0000FFFF) + (checksum >> 16);
 
 	/* Ones complement everything */
 	checksum = ~checksum;
+
+	/* Checksum must not be zero, as that means checksum is ignored.
+	 * Instead send all ones. */
+	if(checksum == 0)
+	{
+		checksum = ~(0);
+	}
+
+	uint16_t final_sum = checksum & 0x0000FFFF;
+	*(uint16_t*)&udp_packet[6] = uint16_to_nbo(final_sum);
 
 
 
