@@ -76,10 +76,10 @@ uint16_t uint16_to_nbo(uint16_t val)
  ***************************************************/
 void sr_memset(uint8_t* buffer, uint8_t value, uint16_t len)
 {
-	len--; /* Take off one to turn into index */
-	for( ; len >= 0; len--)
+	uint16_t i = 0;
+	for(i = 0; i < len; i++)
 	{
-		buffer[len] = value;
+		buffer[i] = value;
 	}
 }
 
@@ -99,10 +99,10 @@ void sr_memset(uint8_t* buffer, uint8_t value, uint16_t len)
  ***************************************************/
 void sr_memcpy(uint8_t* dest, const uint8_t* src, uint16_t len)
 {
-	len--; /* Take off one to turn into index */
-	for( ; len >= 0; len--)
+	uint16_t i = 0;
+	for(i = 0; i < len; i++)
 	{
-		dest[len] = src[len];
+		dest[i] = src[i];
 	}
 }
 
@@ -124,10 +124,10 @@ void sr_memcpy(uint8_t* dest, const uint8_t* src, uint16_t len)
  ***************************************************/
 bool sr_memcmp(const uint8_t* buffa, const uint8_t* buffb, uint16_t len)
 {
-	len--; /* Take off one to turn into index (although it does mean we will search backwards) */
-	for( ; len >= 0; len--)
+	uint16_t i = 0;
+	for(i = 0; i < len; i++)
 	{
-		if(buffa[len] != buffb[len])
+		if(buffa[i] != buffb[i])
 		{
 			return false;
 		}

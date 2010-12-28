@@ -23,9 +23,20 @@
 //#include "mac/enc28j60.h"
 //#include "link_uc.h"
 
+#include "arp.h"
 
 int main()
 {
+
+		uint8_t local_ip_addr[4] = { 192, 168, 1, 1 };
+		uint8_t local_hw_addr[6] = {2, 0, 0, 0, 0, 0 };
+		set_ipv4_addr(local_ip_addr);
+		init_ethernet(local_hw_addr);
+
+
+	uint8_t ip[4] = { 192, 168, 1, 10 };
+	uint8_t hw[6] = { 1, 2, 3, 4, 5, 6 };
+	resolve_ether_addr(ip, hw);
 
 	return 0;
 

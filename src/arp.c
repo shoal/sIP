@@ -207,7 +207,7 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 	/* Add an ARP entry if there isn't one already. */
 	if(cached_exists == false)
 	{
-		if(add_arp_entry(0x000000, ip4_addr, ARP_DEFAULT_TIMEOUT, false) != SUCCESS)
+		if(add_arp_entry(hw_addr, ip4_addr, ARP_DEFAULT_TIMEOUT, false) != SUCCESS)
 		{
 			return FAILURE;
 		}
@@ -244,19 +244,16 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 		get_ether_addr(local_hw_addr);
 
 		/* Hardware */
-		arp_request[0] = (uint8_t)(ARP_HRD >> 8);
-		arp_request[1] = (uint8_t)(ARP_HRD);
+		*(uint16_t*)&arp_request[0] = uint16_to_nbo(ARP_HRD);
 
 		/* Resolve protocol type (NOTE: only bother with IPv4 here)*/
-		arp_request[2] = (uint8_t)(IPv4 >> 8);
-		arp_request[3] = (uint8_t)(IPv4);
+		*(uint16_t*)&arp_request[2] = uint16_to_nbo(IPv4);
 
 		/* Address lengths, hardware & protocol */
 		arp_request[4] = (uint8_t)ARP_HLN;
 		arp_request[5] = (uint8_t)ARP_PRO;
 
-		arp_request[6] = (uint8_t)(ARP_REQUEST >> 8);
-		arp_request[7] = (uint8_t)(ARP_REQUEST);
+		*(uint16_t*)&arp_request[6] = uint16_to_nbo(ARP_REQUEST);
 
 		sr_memcpy(&arp_request[8], local_hw_addr, 6);
 		sr_memcpy(&arp_request[14], local_ip_addr, 4);

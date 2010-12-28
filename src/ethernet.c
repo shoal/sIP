@@ -102,9 +102,9 @@ RETURN_STATUS init_ethernet(uint8_t addr[6])
  *	Return:
  * 		SUCCESS
  ***************************************************/
-RETURN_STATUS get_ether_addr(const uint8_t *addr)
+RETURN_STATUS get_ether_addr(uint8_t *addr)
 {
-	addr = ethernet_addr;
+	sr_memcpy(addr, ethernet_addr, 6);
 
 	return SUCCESS;
 }
@@ -264,11 +264,11 @@ RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffe
 
 	/* Source */
 	eth_buffer[14] = ethernet_addr[0];
-	eth_buffer[15] = ethernet_addr[0];
-	eth_buffer[16] = ethernet_addr[0];
-	eth_buffer[17] = ethernet_addr[0];
-	eth_buffer[18] = ethernet_addr[0];
-	eth_buffer[19] = ethernet_addr[0];
+	eth_buffer[15] = ethernet_addr[1];
+	eth_buffer[16] = ethernet_addr[2];
+	eth_buffer[17] = ethernet_addr[3];
+	eth_buffer[18] = ethernet_addr[4];
+	eth_buffer[19] = ethernet_addr[5];
 
 	/* Type (or length if not protocol) */
 	*(uint16_t*)&eth_buffer[20] = uint16_to_nbo(type);
@@ -279,7 +279,7 @@ RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffe
 	{
 		if(i < buffer_len)
 		{
-			eth_buffer[ETH_DATASTART + 1] = buffer[i];
+			eth_buffer[ETH_DATASTART + i] = buffer[i];
 		}
 		else
 		{
