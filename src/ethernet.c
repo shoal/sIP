@@ -194,7 +194,7 @@ void ether_frame_available(uint8_t *buffer, uint16_t buffer_len)
 {
 	// NOTE: This could technically be a
 	// length, but we are using standard protocols.
-	uint16_t packet_type = buffer[20];
+	uint16_t packet_type = uint16_to_nbo(*(uint16_t*)&buffer[12]);
 
 	/* Find callbacks that like this packet type. */
 	uint8_t i = 0;
@@ -202,7 +202,7 @@ void ether_frame_available(uint8_t *buffer, uint16_t buffer_len)
 	{
 		if(ether_packet_callbacks[i].required_type == packet_type)
 		{
-			(ether_packet_callbacks[i].fn_callback)(buffer, buffer_len);
+			(ether_packet_callbacks[i].fn_callback)(&buffer[14], buffer_len-14);
 		}
 	}
 }
@@ -275,7 +275,7 @@ RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffe
 
 	/* Copy across data & padding */
 	uint16_t i = 0;
-	for(i = 0; i < padded_buffer_len - 1; i++)
+	for(i = 0; i < padded_buffer_len; i++)
 	{
 		if(i < buffer_len)
 		{

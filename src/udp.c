@@ -185,7 +185,7 @@ void udp_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len)
 	 * If nobody, then packet wont get any further.
 	 */
 
-	uint16_t port = (uint16_t)buffer[2];
+	uint16_t port = uint16_to_nbo(*(uint16_t*)&buffer[2]);
 
 
 	uint8_t i = 0;
@@ -221,14 +221,14 @@ RETURN_STATUS send_udp(const uint8_t* dest_addr, const uint16_t port, const uint
 	/* Build header:
 	 *
 	 *      0      7 8     15 16    23 24    31
-     *     +--------+--------+--------+--------+
-     *     |     Source      |   Destination   |
-     *     |      Port       |      Port       |
-     *     +--------+--------+--------+--------+
-     *     |                 |                 |
-     *     |     Length      |    Checksum     |
-     *     +--------+--------+--------+--------+
-     *     |
+	 *     +--------+--------+--------+--------+
+	 *     |     Source      |   Destination   |
+	 *     |      Port       |      Port       |
+	 *     +--------+--------+--------+--------+
+	 *     |                 |                 |
+	 *     |     Length      |    Checksum     |
+	 *     +--------+--------+--------+--------+
+	 *     |
      *     |          data octets ...
      *     +---------------- ...
 	 *
@@ -257,14 +257,12 @@ RETURN_STATUS send_udp(const uint8_t* dest_addr, const uint16_t port, const uint
 	/* Length */
 	*(uint16_t*)&udp_packet[4] = uint16_to_nbo(udp_packet_len);
 
-	/*
-	 * Checksum
-	 *
-	 * Ones complement of IP pseudo-header, UDP header and data.
-	 *
-	 */
-
+	/* Checksum */
 	*(uint16_t*)&udp_packet[6] = 0x0000; /* Initialise checksum to 0*/
+
+	/* Data */
+	sr_memcpy(&udp_packet[8], buffer, buffer_len);
+
 
 	/* Use a 32bit sum because the carries need to be added to the 16bit result. */
 	uint32_t checksum = 0;
@@ -326,11 +324,6 @@ RETURN_STATUS send_udp(const uint8_t* dest_addr, const uint16_t port, const uint
 
 	uint16_t final_sum = checksum & 0x0000FFFF;
 	*(uint16_t*)&udp_packet[6] = uint16_to_nbo(final_sum);
-
-
-
-	/* Data */
-	sr_memcpy(&udp_packet[8], buffer, buffer_len);
 
 	/* Wrap it up in an IP packet for sending */
 	return send_ip4_datagram(dest_addr, udp_packet, udp_packet_len, IP_UDP);

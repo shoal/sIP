@@ -117,8 +117,27 @@ RETURN_STATUS init_arp()
 RETURN_STATUS add_arp_entry(const uint8_t hw_addr[6], const uint8_t ip4_addr[4], uint32_t timeout, bool valid)
 {
 
-	/* Iterate through ARP table to find a free slot */
+	/* Dont add a new entry if it already exists */
 	uint16_t i = 0;
+	for(i = 0; i < ARP_TABLE_SIZE; i++)
+	{
+		if( sr_memcmp( arp_table[i].ip_addr, ip4_addr, 4) == true)
+		{
+			/* 
+			 * Assume that it is being updated.
+			 * You probably wouldn't be this trusting with
+			 * a normal stack!
+			 */
+			kill_timer(arp_table[i].timeout_id, false);
+			arp_table[i].timeout_id = add_timer(timeout, &arp_timeout_callback);
+			sr_memcpy(arp_table[i].hw_addr, hw_addr, 6);
+			arp_table[i].valid = valid;
+
+			return SUCCESS;
+		}
+	}
+
+	/* Iterate through ARP table to find a free slot */
 	for(i = 0; i < ARP_TABLE_SIZE; i++)
 	{
 		/* Found one so check it is OK then set the data */
@@ -203,7 +222,6 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 	}
 
 
-
 	/* Add an ARP entry if there isn't one already. */
 	if(cached_exists == false)
 	{
@@ -267,7 +285,7 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 
 		/* Set up timeout to wait for reply (poll it, don't bother about interrupts) */
 		uint16_t timer = add_timer(ARP_REPLY_TIMEOUT, NULL);
-		while(is_running(timer) == true)
+		do
 		{
 			/* Has value become true?? */
 			if(arp_table[cached_index].valid == true)
@@ -278,7 +296,7 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 
 				return SUCCESS;
 			}
-		}
+		}while(is_running(timer) == true);
 
 	}
 
@@ -314,11 +332,12 @@ void arp_arrival_callback(const uint8_t *buffer, const uint16_t buffer_len)
 	{
 		return;
 	}
-	uint16_t hw_type = (uint16_t)buffer[0];
-	uint16_t proto_type = (uint16_t)buffer[2];
+
+	uint16_t hw_type = uint16_to_nbo(*(uint16_t*)&buffer[0]);
+	uint16_t proto_type = uint16_to_nbo(*(uint16_t*)&buffer[2]);
 	uint8_t hw_addr_len = buffer[4];
 	uint8_t proto_addr_len = buffer[5];
-	uint16_t opcode = (uint16_t)buffer[6];
+	uint16_t opcode = uint16_to_nbo(*(uint16_t*)&buffer[6]);
 
 	// Make sure we can handle this information;
 	if(hw_type != ARP_HRD)
