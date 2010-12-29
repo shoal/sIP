@@ -1,0 +1,5 @@
+This directory contains test harnesses to allow certain parts of the code to be run on a PC.  The test code tends to be a bit of a hack, so dont get too excited.
+
+These test files are simply linked with the stack, either as drivers or replacing a particular component.  Read the individual README files for more info.
+
+

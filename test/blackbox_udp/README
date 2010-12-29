@@ -1,0 +1,25 @@
+Test: /test/blackbox_udp/
+ - Desktop PC userspace driver
+ - Intended to test UDP listening, checksums and ARP
+ - Logs all transfers to a pcap file
+ - Responds to specific packet types with manually crafted packets (assumed correct)
+ - Stack application layer just echo's sent string
+
+To Build:
+ - CD to this directory
+ # gcc -g -c *.c
+ # cp *.o ../../src/
+ - Link the *.o files
+ - Note that main.c/o contains the 'int main', so you dont need your own.
+
+To Use:
+ - Run ./a.out
+ - Results file (capture.pcap) can be viewed in Wireshark
+
+Expected Results:
+ - ARP request TO stack
+ - ARP request FROM stack
+ - UDP data FROM stack
+ - UDP data TO stack
+ - (last 2 repeated 50 times)
+
