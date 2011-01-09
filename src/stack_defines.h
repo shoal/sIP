@@ -35,7 +35,7 @@
 
 /* Max number of UDP ports to listen to */
 #ifndef UDP_LISTEN_SIZE
-#define UDP_LISTEN_SIZE		20
+#define UDP_LISTEN_SIZE		5
 #endif
 
 /* Max number of Ethernet types allowed */
@@ -65,7 +65,7 @@
 
 /* Max number of timers */
 #ifndef TIMER_COUNT
-#define TIMER_COUNT			200
+#define TIMER_COUNT		200
 #endif
 
 /*
@@ -73,47 +73,26 @@
  * Note that 1.5k is quite a lot of memory in a small device!
  */
 #ifndef ETH_MAXDATA
-#define ETH_MAXDATA			3000
+#define ETH_MAXDATA		500
 #endif
 
 #ifndef ETH_MINDATA
-#define ETH_MINDATA			36	//TODO - check
+#define ETH_MINDATA		36	//TODO - check
 #endif
 
-/* Where the preamble ends in the Ethernet header */
-#ifndef ETH_PREAMBLELEN
-#define ETH_PREAMBLELEN		8
-#endif
-
-/* Extra bytes added to Ethernet header (footer) for CRC */
-#ifndef ETH_CRCLEN
-#define ETH_CRCLEN			4
-#endif
-
-/* Where the data starts in the Ethernet header */
-#ifndef ETH_DATASTART
-#define ETH_DATASTART		22
-#endif
 
 /* Number of IP protocols allowed */
 #ifndef IP_CALLBACK_SIZE
 #define IP_CALLBACK_SIZE	5
 #endif
 
-/* Length of the IP header
- * (not bothering with variable length OPTION
- * section - simples)
- */
-#ifndef IP_HEADERLEN
-#define IP_HEADERLEN		20
-#endif
-
 /* IP max payload size (minus header) */
 #ifndef IP_MAX_PACKET
-#define IP_MAX_PACKET		2000
+#define IP_MAX_PACKET		1400
 #endif
 
 /* IP TTL */
 #ifndef IP_TTL
-#define IP_TTL				200
+#define IP_TTL			200
 #endif
+

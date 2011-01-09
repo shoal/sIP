@@ -31,8 +31,16 @@
 
 #include "global.h"
 
-/* Length of header & footer */
-#define ETH_HEADERLEN	26
+/* Length of header */
+#define ETH_HEADERLEN	14
+
+/* Length of footer (CRC) */
+#define ETH_CRCLEN	4
+
+/* Location of protocol in header */
+#define ETH_PROTOCOL	12
+
+
 
 typedef enum ETHERNET_TYPE
 {

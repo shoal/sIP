@@ -50,7 +50,7 @@ void ip_response()
 		0, 0, 0, 0,			
 		200, 				//ttl
 		0x11,				//udp
-		0, 0,				//checksum - 0x0000 = ignore
+		0x6f, 0x6d,				//checksum - 0x0000 = ignore
 		192, 168, 1, 10,
 		192, 168, 1, 1,
 

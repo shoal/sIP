@@ -23,17 +23,16 @@ RETURN_STATUS init_link()
 RETURN_STATUS write_buffer(const uint8_t *buffer, const uint16_t buffer_len)
 {
 
-	/* move in 8 - Ethernet code adds preamble, 
-	 * not sure if any max will actually need this? */
-	write_pcap(&buffer[8], buffer_len-8);
+	write_pcap(buffer, buffer_len);
 
-	if(buffer[8 + 12] == 0x08 && buffer[8 + 13] == 0x06)
+	if(buffer[12] == 0x08 && buffer[13] == 0x06)
 	{
-		if(buffer[8+21] == 1)
+		// only respond to a request
+		if(buffer[21] == 1)
 			arp_response();
 	}
 
-	if(buffer[8 + 12] == 0x08 && buffer[8 + 13] == 0x00)
+	if(buffer[12] == 0x08 && buffer[13] == 0x00)
 	{
 		//IP - assume UDP as thats what I'm testing...
 		ip_response();

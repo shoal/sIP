@@ -165,7 +165,8 @@ RETURN_STATUS remove_ether_packet_callback(ETHERNET_TYPE packet_type, void (*han
 	bool bFound = false;
 	for(i = 0; i < ETHER_CALLBACK_SIZE; i++)
 	{
-		if(ether_packet_callbacks[i].required_type == packet_type && ether_packet_callbacks[i].fn_callback == handler)
+		if(ether_packet_callbacks[i].required_type == packet_type 
+		&& ether_packet_callbacks[i].fn_callback == handler)
 		{
 			ether_packet_callbacks[i].required_type = INVALID;
 			ether_packet_callbacks[i].fn_callback = NULL;
@@ -192,9 +193,16 @@ RETURN_STATUS remove_ether_packet_callback(ETHERNET_TYPE packet_type, void (*han
  ***************************************************/
 void ether_frame_available(uint8_t *buffer, uint16_t buffer_len)
 {
+	if(buffer_len < ETH_MINDATA)
+		return;
+
+#ifdef ETH_CHECK_CRC
+#warning "WARNING: ETH_CHECK_CRC set, but CRC check not yet implemented!"
+#endif
+
 	// NOTE: This could technically be a
 	// length, but we are using standard protocols.
-	uint16_t packet_type = uint16_to_nbo(*(uint16_t*)&buffer[12]);
+	uint16_t packet_type = uint16_to_nbo(*(uint16_t*)&buffer[ETH_PROTOCOL]);
 
 	/* Find callbacks that like this packet type. */
 	uint8_t i = 0;
@@ -202,7 +210,7 @@ void ether_frame_available(uint8_t *buffer, uint16_t buffer_len)
 	{
 		if(ether_packet_callbacks[i].required_type == packet_type)
 		{
-			(ether_packet_callbacks[i].fn_callback)(&buffer[14], buffer_len-14);
+			(ether_packet_callbacks[i].fn_callback)(&buffer[ETH_HEADERLEN], buffer_len-ETH_HEADERLEN);
 		}
 	}
 }
@@ -239,39 +247,35 @@ RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffe
 	}
 
 	/* Create large buffer even if we don't use it all */
-	const uint16_t eth_buffer_len = padded_buffer_len + ETH_HEADERLEN;
-	uint8_t eth_buffer[ETH_MAXDATA + ETH_HEADERLEN];
+	const uint16_t eth_buffer_len = padded_buffer_len + ETH_HEADERLEN + ETH_CRCLEN;
+	uint8_t eth_buffer[ETH_MAXDATA + ETH_HEADERLEN + ETH_CRCLEN];
 
 
-	/* Preamble */
-	eth_buffer[0] = 0b10101010;
-	eth_buffer[1] = 0b10101010;
-	eth_buffer[2] = 0b10101010;
-	eth_buffer[3] = 0b10101010;
-	eth_buffer[4] = 0b10101010;
-	eth_buffer[5] = 0b10101010;
-	eth_buffer[6] = 0b10101010;
-	eth_buffer[7] = 0b10101011;		/* Start of Frame Delimiter (SFD) */
+	/* Preamble:
+	 * All Ethernet frames contain an 8-byte
+	 * preamble.  This is not included here
+	 * as most MACs will generate the automatically.
+	 */
 
 
 	/* Destination */
-	eth_buffer[8] = dest_addr[0];
-	eth_buffer[9] = dest_addr[1];
-	eth_buffer[10] = dest_addr[2];
-	eth_buffer[11] = dest_addr[3];
-	eth_buffer[12] = dest_addr[4];
-	eth_buffer[13] = dest_addr[5];
+	eth_buffer[0] = dest_addr[0];
+	eth_buffer[1] = dest_addr[1];
+	eth_buffer[2] = dest_addr[2];
+	eth_buffer[3] = dest_addr[3];
+	eth_buffer[4] = dest_addr[4];
+	eth_buffer[5] = dest_addr[5];
 
 	/* Source */
-	eth_buffer[14] = ethernet_addr[0];
-	eth_buffer[15] = ethernet_addr[1];
-	eth_buffer[16] = ethernet_addr[2];
-	eth_buffer[17] = ethernet_addr[3];
-	eth_buffer[18] = ethernet_addr[4];
-	eth_buffer[19] = ethernet_addr[5];
+	eth_buffer[6] = ethernet_addr[0];
+	eth_buffer[7] = ethernet_addr[1];
+	eth_buffer[8] = ethernet_addr[2];
+	eth_buffer[9] = ethernet_addr[3];
+	eth_buffer[10] = ethernet_addr[4];
+	eth_buffer[11] = ethernet_addr[5];
 
 	/* Type (or length if not protocol) */
-	*(uint16_t*)&eth_buffer[20] = uint16_to_nbo(type);
+	*(uint16_t*)&eth_buffer[12] = uint16_to_nbo(type);
 
 	/* Copy across data & padding */
 	uint16_t i = 0;
@@ -279,11 +283,11 @@ RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffe
 	{
 		if(i < buffer_len)
 		{
-			eth_buffer[ETH_DATASTART + i] = buffer[i];
+			eth_buffer[ETH_HEADERLEN + i] = buffer[i];
 		}
 		else
 		{
-			eth_buffer[ETH_DATASTART + i] = 0x00;
+			eth_buffer[ETH_HEADERLEN + i] = 0x00;
 		}
 	}
 
@@ -292,14 +296,12 @@ RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffe
 	 *
 	 * This is quite complicated and
 	 * most MAC controllers will do
-	 * it for us, so allow it to be skipped
+	 * it for us, so dont by default
 	 */
-#ifndef ETH_SKIP_CRC
-	// TODO CRC checksum
-	//TODO needs endian-ness check!
-	*(uint32_t*)&eth_buffer[eth_buffer_len - ETH_CRCLEN] = 0x04C11DB7;
-
-#warning "Ethernet CRC calculated in software."
+#ifdef ETH_ADD_SW_CRC
+	// TODO CRC checksum - dont forget endianness!
+	*(uint32_t*)&eth_buffer[eth_buffer_len - ETH_CRCLEN] = 0x00000000;
+#warning "Ethernet CRC calculated in software.  This is not implemented yet!"
 #else
 	*(uint32_t*)&eth_buffer[eth_buffer_len - ETH_CRCLEN] = 0x00000000;
 #endif

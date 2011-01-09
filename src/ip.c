@@ -135,7 +135,7 @@ RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const ui
 
 	uint8_t data[IP_MAX_PACKET + IP_HEADERLEN] = {0};
 
-	data[0] = 0x45; /* 4 in high nibble = IPv4.  5 = length of header */
+	data[0] = 0x45; /* 4 in high nibble = IPv4.  5 = length of header in 32b words */
 	data[1] = 0x00;	/* Normal traffic */
 
 	*(uint16_t*)&data[2] = uint16_to_nbo((uint16_t)(IP_HEADERLEN + buff_len));
@@ -159,9 +159,22 @@ RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const ui
 	data[19] = dest[3];
 
 	/* Check the header checksum */
-	//TODO IP checksum
+	uint16_t i = 0;
+	uint32_t checksum = 0;
+	for(i = 0; i < IP_HEADERLEN; i+=2)
+	{
+		checksum += (data[i] << 8) | data[i+1];
+	}
+	checksum = (checksum & 0x0000FFFF) + (checksum >> 16);
+	checksum = ~checksum;
+	if(checksum == 0)
+		checksum = ~(0);
+	*(uint16_t*)&data[10] = uint16_to_nbo(checksum & 0x0000FFFF);
+	
 
-	uint16_t i = 0, j = 0;
+
+	/* Copy the data into the frame buffer */
+	uint16_t j = 0;
 	for(j = 0, i = IP_HEADERLEN; i < IP_HEADERLEN + buff_len; i++, j++)
 	{
 		data[i] = buffer[j];
@@ -259,14 +272,20 @@ RETURN_STATUS remove_ip4_packet_callback(IP_TYPE packet_type, void (*handler)(co
  ***************************************************/
 void ip_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len)
 {
+
+#ifdef IP_CHECK_CHECKSUM
+#warning "Warning: UDP_CHECK_CHECKSUM set, but feature not yet implemented!"
+#endif
+
+
 	/* Get header length (second nibble of first byte)
 	 * contains word-length of header
 	 */
-	uint8_t ihl = (buffer[0] & 0x0F);
+	uint8_t ihl = (buffer[IP_INCOMMING_HLEN_WORDS] & 0x0F);
 	ihl *= 4;
 
 	/* Get the protocol type */
-	uint8_t type = buffer[9];
+	uint8_t type = buffer[IP_PROTOCOL];
 
 	/* Iterate through all potential listeners */
 	uint16_t i = 0;

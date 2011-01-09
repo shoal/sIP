@@ -32,6 +32,21 @@
 
 #include "global.h"
 
+
+/* Length of the IP header
+ * (not bothering with variable length OPTION
+ * section - simples)
+ */
+#define IP_HEADERLEN		20
+
+/* Header length (words) in the header */
+#define IP_INCOMMING_HLEN_WORDS	0
+
+/* Protocol location in the header */
+#define IP_PROTOCOL		9
+
+
+
 typedef enum IP_TYPE
 {
 	IP_NULL = 0x00,

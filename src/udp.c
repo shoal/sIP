@@ -44,6 +44,13 @@ struct udp_callback_element
 static struct udp_callback_element udp_callbacks[UDP_LISTEN_SIZE];
 
 
+/* UDP header details */
+struct udp_header_s
+{
+	uint16_t
+
+
+
 /****************************************************
  *    Function: init_udp
  * Description: Initialise udp.
@@ -178,7 +185,9 @@ void udp_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len)
 	 * wants the data and forward it on to them.
 	 */
 
-	/* TODO: Check the UDP checksum - assume it is right for now.*/
+#ifdef UDP_CHECK_CHECKSUM
+#warning "Warning: UDP_CHECK_CHECKSUM set, but feature not yet implemented!"
+#endif
 
 	/*
 	 * Find out who is listening to the port.

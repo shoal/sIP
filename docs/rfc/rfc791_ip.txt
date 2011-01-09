@@ -358,6 +358,7 @@ September 1981
     addresses:  in class a, the high order bit is zero, the next 7 bits
     are the network, and the last 24 bits are the local address; in
     class b, the high order two bits are one-zero, the next 14 bits are
+
     the network and the last 16 bits are the local address; in class c,
     the high order three bits are one-one-zero, the next 21 bits are the
     network and the last 8 bits are the local address.
