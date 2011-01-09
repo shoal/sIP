@@ -44,13 +44,6 @@ struct udp_callback_element
 static struct udp_callback_element udp_callbacks[UDP_LISTEN_SIZE];
 
 
-/* UDP header details */
-struct udp_header_s
-{
-	uint16_t
-
-
-
 /****************************************************
  *    Function: init_udp
  * Description: Initialise udp.
@@ -176,7 +169,7 @@ RETURN_STATUS close_udp(uint16_t port)
  *	Return:
  * 		NONE
  ***************************************************/
-void udp_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len)
+void udp_arrival_callback(const uint8_t  *src_addr, const uint8_t* buffer, const uint16_t buffer_len)
 {
 	/*
 	 * Have retrieved a whole UDP packet.

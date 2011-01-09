@@ -59,8 +59,16 @@ struct timer_element timer_store[TIMER_COUNT];
  *	Return:
  * 		SUCCESS
  ***************************************************/
+static bool timer_initialised = false;
 RETURN_STATUS init_timer()
 {
+	if(timer_initialised)
+		return FAILURE;
+
+
+	/* Before we can hook into the time callback we need hardware */
+	init_uc();
+
 
 	/* Initialise all of the timer structs to 0. */
 	uint16_t i = 0;
@@ -76,6 +84,8 @@ RETURN_STATUS init_timer()
 	 * so that we are notified every ms.
 	 */
 	register_ms_callback(&timer_tick_callback);
+
+	timer_initialised = true;
 
 	return SUCCESS;
 }

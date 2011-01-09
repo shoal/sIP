@@ -37,12 +37,17 @@
 struct ip_callback_element
 {
 	IP_TYPE packet_type;
-	void (*callback_fn)(const uint8_t *buffer, uint16_t const buffer_len);
+	void (*callback_fn)(const uint8_t* src_addr, const uint8_t *buffer, uint16_t const buffer_len);
 };
 static struct ip_callback_element ip_callbacks[IP_CALLBACK_SIZE];
 
 /** Our IP address */
 static uint8_t ip_addr[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+
+
+/* Dont initialise this protocol more than once */
+static bool ip_initialised = false;
+
 
 /****************************************************
  *    Function: init_ip
@@ -56,6 +61,18 @@ static uint8_t ip_addr[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
  ***************************************************/
 RETURN_STATUS init_ip()
 {
+
+	if(ip_initialised)
+		return FAILURE;
+
+
+	/* IP requires ethernet */
+	init_ethernet();
+
+	/* Also ARP */
+	init_arp();
+
+
 	uint16_t i = 0;
 	for(i = 0; i < IP_CALLBACK_SIZE; i++)
 	{
@@ -63,7 +80,11 @@ RETURN_STATUS init_ip()
 		ip_callbacks[i].callback_fn = NULL;
 	}
 
-	return add_ether_packet_callback(IPv4, &ip_arrival_callback);
+	RETURN_STATUS ret = add_ether_packet_callback(IPv4, &ip_arrival_callback);
+	if(ret == SUCCESS)
+		ip_initialised = true;
+
+	return ret;
 }
 
 
@@ -135,7 +156,7 @@ RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const ui
 
 	uint8_t data[IP_MAX_PACKET + IP_HEADERLEN] = {0};
 
-	data[0] = 0x45; /* 4 in high nibble = IPv4.  5 = length of header in 32b words */
+	data[0] = 0x45; /* 4 in high nibble = IPv4.  5 = length of header in 32b words*/
 	data[1] = 0x00;	/* Normal traffic */
 
 	*(uint16_t*)&data[2] = uint16_to_nbo((uint16_t)(IP_HEADERLEN + buff_len));
@@ -159,22 +180,9 @@ RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const ui
 	data[19] = dest[3];
 
 	/* Check the header checksum */
-	uint16_t i = 0;
-	uint32_t checksum = 0;
-	for(i = 0; i < IP_HEADERLEN; i+=2)
-	{
-		checksum += (data[i] << 8) | data[i+1];
-	}
-	checksum = (checksum & 0x0000FFFF) + (checksum >> 16);
-	checksum = ~checksum;
-	if(checksum == 0)
-		checksum = ~(0);
-	*(uint16_t*)&data[10] = uint16_to_nbo(checksum & 0x0000FFFF);
-	
+	*(uint16_t*)&data[10] = checksum(data, IP_HEADERLEN, 10);
 
-
-	/* Copy the data into the frame buffer */
-	uint16_t j = 0;
+	uint16_t i = 0, j = 0;
 	for(j = 0, i = IP_HEADERLEN; i < IP_HEADERLEN + buff_len; i++, j++)
 	{
 		data[i] = buffer[j];
@@ -209,7 +217,7 @@ RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const ui
  * 		SUCCESS
  * 		FAILURE			If no room left in storage
  ***************************************************/
-RETURN_STATUS add_ip4_packet_callback(IP_TYPE packet_type, void(*handler)(const uint8_t* buffer, const uint16_t buffer_len))
+RETURN_STATUS add_ip4_packet_callback(IP_TYPE packet_type, void(*handler)(const uint8_t* src_addr, const uint8_t* buffer, const uint16_t buffer_len))
 {
 	uint16_t i = 0;
 	for(i = 0; i < IP_CALLBACK_SIZE; i++)
@@ -237,7 +245,7 @@ RETURN_STATUS add_ip4_packet_callback(IP_TYPE packet_type, void(*handler)(const 
  * 		SUCCESS
  * 		FAILURE			Not found
  ***************************************************/
-RETURN_STATUS remove_ip4_packet_callback(IP_TYPE packet_type, void (*handler)(const uint8_t *buffer, const uint16_t buffer_len))
+RETURN_STATUS remove_ip4_packet_callback(IP_TYPE packet_type, void (*handler)(const uint8_t* src_addr, const uint8_t *buffer, const uint16_t buffer_len))
 {
 	uint16_t i = 0;
 	bool cb_found = false;
@@ -277,7 +285,6 @@ void ip_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len)
 #warning "Warning: UDP_CHECK_CHECKSUM set, but feature not yet implemented!"
 #endif
 
-
 	/* Get header length (second nibble of first byte)
 	 * contains word-length of header
 	 */
@@ -287,13 +294,15 @@ void ip_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len)
 	/* Get the protocol type */
 	uint8_t type = buffer[IP_PROTOCOL];
 
+
 	/* Iterate through all potential listeners */
 	uint16_t i = 0;
 	for(i = 0; i < IP_CALLBACK_SIZE; i++)
 	{
 		if(ip_callbacks[i].packet_type == type)
 		{
-			ip_callbacks[i].callback_fn(&buffer[ihl], buffer_len - ihl);
+			// 12 = source address.
+			ip_callbacks[i].callback_fn(&buffer[12], &buffer[ihl], buffer_len - ihl);
 		}
 	}
 }

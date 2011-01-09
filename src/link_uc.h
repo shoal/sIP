@@ -44,7 +44,7 @@
 RETURN_STATUS mac_cs(bool chip_enable);
 
 /** Initialise IC **/
-RETURN_STATUS init_link();
+RETURN_STATUS init_uc();
 
 /** Write to MAC **/
 RETURN_STATUS write_buffer(const uint8_t *buffer, const uint16_t buffer_len);

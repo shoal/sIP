@@ -65,7 +65,7 @@
 
 /* Max number of timers */
 #ifndef TIMER_COUNT
-#define TIMER_COUNT		200
+#define TIMER_COUNT			200
 #endif
 
 /*
@@ -73,13 +73,12 @@
  * Note that 1.5k is quite a lot of memory in a small device!
  */
 #ifndef ETH_MAXDATA
-#define ETH_MAXDATA		500
+#define ETH_MAXDATA			1000
 #endif
 
 #ifndef ETH_MINDATA
-#define ETH_MINDATA		36	//TODO - check
+#define ETH_MINDATA			36	//TODO - check
 #endif
-
 
 /* Number of IP protocols allowed */
 #ifndef IP_CALLBACK_SIZE
@@ -93,6 +92,15 @@
 
 /* IP TTL */
 #ifndef IP_TTL
-#define IP_TTL			200
+#define IP_TTL				200
 #endif
 
+/* Ping Timeout */
+#ifndef PING_TIMEOUT
+#define PING_TIMEOUT		500
+#endif
+
+/* Max ping packet len to reply to */
+#ifndef MAX_PING_REPLY_LEN
+#define MAX_PING_REPLY_LEN	150
+#endif

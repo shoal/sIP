@@ -51,10 +51,13 @@ typedef enum ETHERNET_TYPE
 
 
 /** Init ethernet **/
-RETURN_STATUS init_ethernet(uint8_t addr[6]);
+RETURN_STATUS init_ethernet();
+
+/** Set ethernet address **/
+RETURN_STATUS set_ether_addr(const uint8_t addr[6]);
 
 /** Get ethernet address **/
-RETURN_STATUS get_ether_addr(uint8_t *addr);
+RETURN_STATUS get_ether_addr(const uint8_t *addr);
 
 /** Add a callback for a particular packet type **/
 RETURN_STATUS add_ether_packet_callback(ETHERNET_TYPE packet_type, void (*handler)(const uint8_t *buffer, const uint16_t buffer_len));

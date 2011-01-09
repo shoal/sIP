@@ -49,7 +49,8 @@ static struct ether_packet_callback_element ether_packet_callbacks[ETHER_CALLBAC
 static uint8_t ethernet_addr[6];
 
 
-
+/* Dont initialise more than once! */
+static bool eth_initialised = false;
 
 
 /****************************************************
@@ -62,8 +63,12 @@ static uint8_t ethernet_addr[6];
  *	Return:
  * 		SUCCESS
  ***************************************************/
-RETURN_STATUS init_ethernet(uint8_t addr[6])
+RETURN_STATUS init_ethernet()
 {
+	if(eth_initialised)
+		return FAILURE;
+
+
 	/* Initialise callback type list */
 	uint8_t i = 0;
 	for(i = 0; i < ETHER_CALLBACK_SIZE; i++)
@@ -71,24 +76,37 @@ RETURN_STATUS init_ethernet(uint8_t addr[6])
 		ether_packet_callbacks[i].required_type = INVALID;
 	}
 
-	/* Save our MAC. */
-	sr_memcpy(ethernet_addr, addr, 6);
 
 	/* Init everything else */
-	if(init_link() != SUCCESS)
-	{
-		return FAILURE;
-	}
-	if(init_mac() != SUCCESS)
-	{
-		return FAILURE;
-	}
+	init_uc();
+	init_mac();
+
 	if(set_frame_complete(&ether_frame_available) != SUCCESS)
 	{
 		return FAILURE;
 	}
 
+
+	eth_initialised = true;
+
 	/* hoorah */
+	return SUCCESS;
+}
+
+
+/****************************************************
+ *    Function: set_ether_addr
+ * Description: Set the ethernet address.
+ *
+ *	Input:
+ * 		MAC Address
+ *
+ *	Return:
+ * 		SUCCESS
+ ***************************************************/
+RETURN_STATUS set_ether_addr(const uint8_t addr[6])
+{
+	sr_memcpy(ethernet_addr, addr, 6);
 	return SUCCESS;
 }
 
@@ -102,9 +120,9 @@ RETURN_STATUS init_ethernet(uint8_t addr[6])
  *	Return:
  * 		SUCCESS
  ***************************************************/
-RETURN_STATUS get_ether_addr(uint8_t *addr)
+RETURN_STATUS get_ether_addr(const uint8_t *addr)
 {
-	sr_memcpy(addr, ethernet_addr, 6);
+	addr = ethernet_addr;
 
 	return SUCCESS;
 }

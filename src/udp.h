@@ -45,6 +45,6 @@ RETURN_STATUS listen_udp(const uint16_t port, void(*handler)(const uint8_t* buff
 RETURN_STATUS close_udp(const uint16_t port);
 
 /** Get notified when IP gets a UDP packet */
-void udp_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len);
+void udp_arrival_callback(const uint8_t *src_addr, const uint8_t* buffer, const uint16_t buffer_len);
 
 #endif

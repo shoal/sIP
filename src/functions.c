@@ -135,3 +135,50 @@ bool sr_memcmp(const uint8_t* buffa, const uint8_t* buffb, uint16_t len)
 
 	return true;
 }
+
+
+/****************************************************
+ *    Function: checksum
+ * Description: Creates network checksum of a buffer
+ *				This is the ones complement of the sum
+ *
+ *	Input:
+ *		buffer
+ *		len
+ *		checksum_location	Assume this location to be 0x0000
+ *
+ *	Return:
+ * 		uint16_t
+ ***************************************************/
+uint16_t checksum(const uint8_t *buffer, uint16_t len, uint8_t checksum_location)
+{
+	uint32_t sum = 0;
+	uint8_t i = 0;
+
+	/* Sum in 16-bit blocks */
+	for(i = 0; i < len - 1; i+=2)
+	{
+		if(i != checksum_location) /* Mask out where the checksum should go */
+		{
+			sum += (buffer[i] << 8) | buffer[i+1];
+		}
+	}
+
+	/* if buffer length is odd, add blank padding */
+	if( ((len / 2) * 2) != len)
+	{
+		sum += (buffer[len - 1] << 8) & 0x00000000;
+	}
+
+	/* Keep folding until all carry bits are added */
+	while(sum >> 16)
+	{
+		sum += (sum & 0x0000FFFF) + (sum >> 16);
+	}
+
+	/* Ones-complement */
+	sum = ~sum;
+
+	return (sum == 0) ? 0xFFFF : (uint16_t)sum;
+
+}

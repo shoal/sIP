@@ -50,7 +50,8 @@
 typedef enum IP_TYPE
 {
 	IP_NULL = 0x00,
-	IP_UDP = 0x11,
+	IP_ICMP = 0x01,
+	IP_UDP = 0x11
 } IP_TYPE;
 
 /** Initialise **/
@@ -66,10 +67,10 @@ RETURN_STATUS get_ipv4_addr(uint8_t *addr);
 RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const uint16_t buff_len, IP_TYPE type);
 
 /** Manage who to call when a packet arrives. */
-RETURN_STATUS add_ip4_packet_callback(IP_TYPE packet_type, void(*handler)(const uint8_t* buffer, const uint16_t buffer_len));
+RETURN_STATUS add_ip4_packet_callback(IP_TYPE packet_type, void(*handler)(const uint8_t* src_addr, const uint8_t* buffer, const uint16_t buffer_len));
 
 /** Remove a listener from the list */
-RETURN_STATUS remove_ip4_packet_callback(IP_TYPE packet_type, void (*handler)(const uint8_t *buffer, const uint16_t buffer_len));
+RETURN_STATUS remove_ip4_packet_callback(IP_TYPE packet_type, void (*handler)(const uint8_t* src_addr, const uint8_t *buffer, const uint16_t buffer_len));
 
 /** Notification of incoming packet */
 void ip_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len);

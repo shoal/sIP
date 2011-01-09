@@ -43,5 +43,8 @@ void sr_memcpy(uint8_t* dest, const uint8_t* src, uint16_t len);
 /** Compare two buffers **/
 bool sr_memcmp(const uint8_t* buffa, const uint8_t* buffb, uint16_t len);
 
+/** Network checksum */
+uint16_t checksum(const uint8_t *buffer, uint16_t len, uint8_t checksum_location);
+
 
 #endif /* FUNCTIONS_H_ */
