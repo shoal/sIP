@@ -1,8 +1,3 @@
-ARP
-  - Deal with IP clash.  RARP?
-  - Support RARP, gratuitous ARP etc.
-  - Implement some simple ARP attack prevention.
- 
  TIMER
   - Make timer more configurable (different clocks)
   
@@ -10,8 +5,32 @@ ARP
  - Deal with packet fragmentation (for now assume fixed length packets)
  - If PHY/MAC receives a frame that is too large for our max frame, what to do??
  - Remove standard datatypes (int, char) and use uint8_t etc.
- - Optimise ETH_MAXDATA, UDP_MAXDATA, IP_MAXDATA etc
+ - Optimise ETH_MAXDATA, UDP_MAXDATA, IP_MAXDATA etc in stack_defines.h
+ - Convert my crazy buffers to something a bit more manageable.  Zero-Copy??
+ - Sort out the init_* functions [if(!init)init]
+ - Locate and remove 'magic-numbers' from code
+
+ PROTOCOLS
+ - Implement checksum validation for incomming UDP and IP
+ - Review implementation of Ethernet, ARP, IP and UDP protocols
+ - Add ICMP, DHCP and TCP protocols
+ - Ethernet CRC generation and checking (is there a need?)
+
+ OPEN SOURCE
+ - Recruit & perform code review focusing on readability (focus on consistency and removing clever code)
+ - Debate zero-copy from simplicity perspective
+
+ TESTING
+ - Locate some hardware for testing & porting
+ - Investigate integrating with Linux or VM for enhanced testing
+
+ DOCUMENTATION
+ - Generate documentation for compilation options such enabling IP checksum validation
+ - Get some easy instructions together for porting
+ - Instructions to include into an AVRStudio/PIC project.
+ - FAQ & Doxygen @ shoalresearch.com
+
 
  COPYRIGHT & PREAMBLE
- - Rember to update copyright
+ - Rember to update copyright in 2011 for changed files
  - Ensure details of changes are added to change history
