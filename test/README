@@ -2,4 +2,4 @@ This directory contains test harnesses to allow certain parts of the code to be 
 
 These test files are simply linked with the stack, either as drivers or replacing a particular component.  Read the individual README files for more info.
 
-
+Please ensure test harnesses are kept up to date, and new tests are added with new functionality.
