@@ -8,7 +8,7 @@ them in your project.
 <b>How to port to a particular platform</b>
 This section will be expanded when the procedure has been formalised.
 For now, you basically need to derrive from the prototypes provided
-by link_mac.h and link_uc.h
+by link_uc_mac.h
 
 <b>Sometimes 'locks up' for a little bit.</b>
 Some functions have been made to block, such as waiting for ARP 
@@ -37,19 +37,21 @@ and possibly IPv6 in the future.  The code is easy to understand and easy
 to add other protocols, so if you understand the protocol then adding it 
 shouldn't be too hard.  If there is enough interest in a particular 
 protocol then I will see about adding it, otherwise if you do it 
-yourself, please submit your patch to the project.
+yourself, please submit your patch to the project.  One of the great
+things about the simplicity of this stack is that adding in a new 
+protocol will be fairly easy.
 
 <b>The security is weak</b>
 Yes, this is currently very true.  As mentioned elsewhere, this is a 
 very simple stack designed to show how TCP/IP works and provide simple
 and portable code.  It is not intended to be used on a public facing server
-(although it could very easily be adapted to be), besides, it was intended 
+(although it could be adapted to be), besides, it was intended 
 for 8-bit microcontrollers with 10MHz clocks, don't expect DDoS prevention
 any time soon ;-)  Please help me document any weakneses found even if we
 cant fix them it will be educational.
 
 <b>Security flaws</b>
-Problems specific to sIP;
+Problems specific to sIP found so far;
 ARP does not check if it originaly sent a request that it has a response for.
 ARP cannot deal with IP conflicts.
 ARP does not check the packet is from who it says it is from.
