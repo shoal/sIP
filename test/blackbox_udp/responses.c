@@ -1,12 +1,14 @@
 /* Copyright 2010 Dave Barnard (www.shoalresearch.com) */
 
-#include "../../src/link_uc.h"
-#include "../../src/link_mac.h"
+#include "../../src/link_uc_mac.h"
 
 #include "responses.h"
 //#include "linux_user_driver.h"
 #include "pcap.h"
 #include <stdint.h>
+
+extern void (*cb_frame_complete)(uint8_t *buffer, const uint16_t buffer_len);
+
 
 void arp_response( )
 {
@@ -31,7 +33,7 @@ void arp_response( )
 	write_pcap(buff, buff_len);
 
 	// send data back
-	(frame_complete)(buff, buff_len);
+	(cb_frame_complete)(buff, buff_len);
 
    
 }
@@ -63,7 +65,7 @@ void ip_response()
 	// write to debug file
 	write_pcap(buff, sizeof(buff));
 
-	(frame_complete)(buff, sizeof(buff));
+	(cb_frame_complete)(buff, sizeof(buff));
 
    
 }

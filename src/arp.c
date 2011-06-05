@@ -293,17 +293,12 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 
 				kill_timer(timer, false);
 
-				usart_write_line(EXAMPLE_USART, "Timer ended - ARP success");
-
-
 				return SUCCESS;
 			}
 		}while(is_running(timer) == true);
 
 
 	}
-
-	usart_write_line(EXAMPLE_USART, "Timer ended - ARP failure ");
 
 	/* ARP request failed.  Make it timeout */
 	arp_table[cached_index].valid = false;

@@ -34,17 +34,6 @@
 #include <stdbool.h>
 
 
-#  define EXAMPLE_USART               (&AVR32_USART1)
-#  define EXAMPLE_USART_RX_PIN        AVR32_USART1_RXD_0_0_PIN
-#  define EXAMPLE_USART_RX_FUNCTION   AVR32_USART1_RXD_0_0_FUNCTION
-#  define EXAMPLE_USART_TX_PIN        AVR32_USART1_TXD_0_0_PIN
-#  define EXAMPLE_USART_TX_FUNCTION   AVR32_USART1_TXD_0_0_FUNCTION
-#include <avr32/io.h>
-#include "compiler.h"
-#include "board.h"
-#include "pm.h"
-#include "gpio.h"
-#include "usart.h"
 
 
 

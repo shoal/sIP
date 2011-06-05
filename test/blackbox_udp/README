@@ -7,10 +7,9 @@ Test: /test/blackbox_udp/
 
 To Build:
  - CD to this directory
- # gcc -g -c *.c
+ # gcc -g -c *.c -I../../src/
  # cp *.o ../../src/
- - Link the *.o files
- - Note that main.c/o contains the 'int main', so you dont need your own.
+ # gcc -o a.out *.o
 
 To Use:
  - Run ./a.out

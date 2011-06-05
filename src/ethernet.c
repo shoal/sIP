@@ -218,7 +218,7 @@ void ether_frame_available(uint8_t *buffer, uint16_t buffer_len)
 	// NOTE: This could technically be a
 	// length, but we are only using standard protocols in this stack
 	uint16_t packet_type = uint16_to_nbo(*(uint16_t*)&buffer[ETH_PROTOCOL]);
-			usart_write_line(EXAMPLE_USART, "Called Back #1\r\n");	
+
 	/* Find callbacks that like this packet type. */
 	uint8_t i = 0;
 	for(i = 0; i < ETHER_CALLBACK_SIZE; i++)

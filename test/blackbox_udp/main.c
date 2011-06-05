@@ -1,9 +1,11 @@
 /** COPYRIGHT 2010 Dave Barnard (www.shoalresearch.com) */
-#include "../../src/link_uc.h"
-#include "../../src/link_mac.h"
+#include "../../src/link_uc_mac.h"
 #include "../../src/arp.h"
+#include "../../src/udp.h"
 #include "pcap.h"
 #include <stdio.h>
+
+extern void (*cb_frame_complete)(uint8_t *buffer, const uint16_t buffer_len);
 
 uint16_t stack_limit = 99;
 uint16_t send_ok = 0, send_err = 0;
@@ -16,7 +18,7 @@ void incomming_test(const uint8_t* buffer, const uint16_t buffer_len)
 
 	char *data = "testing3!";
 	uint8_t ip[4] = { 192, 168, 1, 10 };
-	RETURN_STATUS ret = send_udp(ip, 65000, data, 8);
+	RETURN_STATUS ret = send_udp(ip, 65000, data, 10);
 
 
 	if(ret == SUCCESS)
@@ -66,8 +68,7 @@ int main()
 	write_pcap(buff, sizeof(buff));
 
 	// send data back
-	(frame_complete)(buff, sizeof(buff));
-
+	(cb_frame_complete)(buff, sizeof(buff));
 
 	RETURN_STATUS ret = listen_udp(65000, &incomming_test);
 
@@ -77,7 +78,7 @@ int main()
 		printf("FAILURE - Not listening\n");
 	
 
-	char *data = "testing2!";
+	char *data = "testingABC!";
 	ret = send_udp(ip, 65000, data, 8);
 
 

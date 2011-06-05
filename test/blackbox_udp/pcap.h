@@ -8,5 +8,6 @@ void open_pcap();
 
 void write_pcap(const uint8_t *buffer, const uint16_t buffer_len);
 
+void close_pcap();
 
 #endif

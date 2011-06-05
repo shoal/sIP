@@ -66,3 +66,8 @@ void write_pcap(const uint8_t *buffer, const uint16_t buffer_len)
 	fwrite(&buffer[0], 1, buffer_len, m_fp);
 
 }
+
+void close_pcap()
+{
+	fclose(m_fp);
+}

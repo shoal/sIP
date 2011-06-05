@@ -46,7 +46,7 @@ RETURN_STATUS init_uc(void);
 RETURN_STATUS init_mac(void);
 
 /** Complete frame to drop onto the wire */
-RETURN_STATUS send_frame(uint8_t *buffer, const uint16_t buffer_len);
+RETURN_STATUS send_frame(const uint8_t *buffer, const uint16_t buffer_len);
 
 /** Read from MAC **/
 RETURN_STATUS read_buffer(uint8_t *buffer, const unsigned int buffer_len, unsigned int *actual_len, const unsigned int timeout_ms);
