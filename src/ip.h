@@ -39,7 +39,7 @@
  */
 #define IP_HEADERLEN		20
 
-/* Header length (words) in the header */
+/* Header length (words) in the header (location in buffer) */
 #define IP_INCOMMING_HLEN_WORDS	0
 
 /* Protocol location in the header */
@@ -55,13 +55,13 @@ typedef enum IP_TYPE
 } IP_TYPE;
 
 /** Initialise **/
-RETURN_STATUS init_ip();
+RETURN_STATUS init_ip(void);
 
 /** Set our IP address **/
 RETURN_STATUS set_ipv4_addr(uint8_t addr[4]);
 
 /** Get our IP address **/
-RETURN_STATUS get_ipv4_addr(uint8_t *addr);
+const uint8_t const * get_ipv4_addr(void);
 
 /** Send datagram **/
 RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const uint16_t buff_len, IP_TYPE type);

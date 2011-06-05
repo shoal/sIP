@@ -34,6 +34,9 @@
 /** Convert a uint16_t to Network Byte Order (big endian) **/
 uint16_t uint16_to_nbo(uint16_t val);
 
+/** Convert an nbo number to something usable **/
+uint16_t uint16_from_nbo(uint16_t val);
+
 /** Set a chunk of memory to a known value **/
 void sr_memset(uint8_t* buffer, uint8_t value, uint16_t len);
 
@@ -45,6 +48,9 @@ bool sr_memcmp(const uint8_t* buffa, const uint8_t* buffb, uint16_t len);
 
 /** Network checksum */
 uint16_t checksum(const uint8_t *buffer, uint16_t len, uint8_t checksum_location);
+
+/** Checksum packet from fragmented data */
+uint16_t checksum_fragmented(const uint8_t *header, uint16_t header_len, const uint8_t *data, uint16_t data_len, uint8_t checksum_location);
 
 
 #endif /* FUNCTIONS_H_ */

@@ -79,6 +79,6 @@ void arp_arrival_callback(const uint8_t *buffer, const uint16_t buffer_len);
 void arp_timeout_callback(const uint16_t ident);
 
 /** init ARP functionality **/
-RETURN_STATUS init_arp();
+RETURN_STATUS init_arp(void);
 
 #endif /* ARP_H_ */

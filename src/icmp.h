@@ -39,7 +39,7 @@ enum error_list
 
 
 /** Initialise ICMP comms */
-RETURN_STATUS init_icmp();
+RETURN_STATUS init_icmp(void);
 
 /** Ping a thing and return time in ms (0 = unreachable or timeout) */
 RETURN_STATUS ping(const uint8_t *dest_addr);
@@ -48,6 +48,6 @@ RETURN_STATUS ping(const uint8_t *dest_addr);
 void icmp_arrival_callback(const uint8_t *src_addr, const uint8_t* buffer, const uint16_t buffer_len);
 
 /** Get the last error */
-enum error_list get_last_error();
+enum error_list get_last_error(void);
 
 #endif

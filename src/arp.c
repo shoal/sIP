@@ -49,12 +49,12 @@
 /** ARP table / linked list **/
 struct arp_element
 {
-	uint8_t hw_addr[6];
-	uint8_t	ip_addr[4];
-	uint16_t timeout_id;
-	bool valid;
+	volatile uint8_t hw_addr[6];
+	volatile uint8_t	ip_addr[4];
+	volatile uint16_t timeout_id;
+	volatile bool valid;
 };
-static struct arp_element arp_table[ARP_TABLE_SIZE];
+static volatile struct arp_element arp_table[ARP_TABLE_SIZE];
 
 
 
@@ -256,10 +256,8 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 		uint8_t bcast_ether_addr[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 		// Get our own details first.
-		uint8_t local_hw_addr[6];
-		uint8_t local_ip_addr[4];
-		get_ipv4_addr(local_ip_addr);
-		get_ether_addr(local_hw_addr);
+		const uint8_t *local_hw_addr = get_ether_addr();
+		const uint8_t *local_ip_addr = get_ipv4_addr();
 
 		/* Hardware */
 		*(uint16_t*)&arp_request[0] = uint16_to_nbo(ARP_HRD);
@@ -278,15 +276,16 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 		sr_memcpy(&arp_request[18], bcast_ether_addr, 6); // Broadcast.
 		sr_memcpy(&arp_request[24], ip4_addr, 4);
 
-
 		/* Finally send...*/
 		send_ether_packet(bcast_ether_addr, arp_request, ARP_LEN, ARP);
 
 
 		/* Set up timeout to wait for reply (poll it, don't bother about interrupts) */
 		uint16_t timer = add_timer(ARP_REPLY_TIMEOUT, NULL);
+
 		do
 		{
+
 			/* Has value become true?? */
 			if(arp_table[cached_index].valid == true)
 			{
@@ -294,16 +293,22 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 
 				kill_timer(timer, false);
 
+				usart_write_line(EXAMPLE_USART, "Timer ended - ARP success");
+
+
 				return SUCCESS;
 			}
 		}while(is_running(timer) == true);
 
+
 	}
 
+	usart_write_line(EXAMPLE_USART, "Timer ended - ARP failure ");
+
 	/* ARP request failed.  Make it timeout */
-	arp_table[i].valid = false;
-	kill_timer(arp_table[i].timeout_id, false);
-	arp_table[i].timeout_id = 0;
+	arp_table[cached_index].valid = false;
+	kill_timer(arp_table[cached_index].timeout_id, false);
+	arp_table[cached_index].timeout_id = 0;
 
 	return FAILURE;
 }
@@ -357,9 +362,7 @@ void arp_arrival_callback(const uint8_t *buffer, const uint16_t buffer_len)
 	uint8_t *target_prot_addr = (uint8_t*)&buffer[24];
 
 	// Only bother doing anything if it is targeted at us;
-	uint8_t local_prot_addr[4]; // Our real IP.
-	get_ipv4_addr(local_prot_addr);
-	if(sr_memcmp(target_prot_addr, local_prot_addr, 4) == false)
+	if(sr_memcmp(target_prot_addr, get_ipv4_addr(), 4) == false)
 	{
 		return;
 	}
@@ -400,9 +403,7 @@ void arp_arrival_callback(const uint8_t *buffer, const uint16_t buffer_len)
 
 
 		// Our Ethernet/hw addr.
-		uint8_t local_hw_addr[6];
-		get_ether_addr(local_hw_addr);
-		sr_memcpy(&response_packet[8], local_hw_addr, 6);
+		sr_memcpy(&response_packet[8], get_ether_addr(), 6);
 
 		// Our IP (using the one they sent is easier).
 		sr_memcpy(&response_packet[14], &buffer[24], 4);

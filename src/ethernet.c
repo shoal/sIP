@@ -30,8 +30,7 @@
 
 #include "stack_defines.h"
 #include "ethernet.h"
-#include "link_mac.h"
-#include "link_uc.h"
+#include "link_uc_mac.h"
 #include "functions.h"
 
 
@@ -40,18 +39,17 @@
 struct ether_packet_callback_element
 {
   void (*fn_callback)(const uint8_t *buffer, const uint16_t buffer_len);
-  ETHERNET_TYPE required_type;
+  volatile ETHERNET_TYPE required_type;
 };
 static struct ether_packet_callback_element ether_packet_callbacks[ETHER_CALLBACK_SIZE];
 
 
 /** Keep track of who we are! */
-static uint8_t ethernet_addr[6];
+uint8_t ethernet_addr[6];
 
 
 /* Dont initialise more than once! */
 static bool eth_initialised = false;
-
 
 /****************************************************
  *    Function: init_ethernet
@@ -120,11 +118,9 @@ RETURN_STATUS set_ether_addr(const uint8_t addr[6])
  *	Return:
  * 		SUCCESS
  ***************************************************/
-RETURN_STATUS get_ether_addr(const uint8_t *addr)
+const uint8_t const * get_ether_addr(void)
 {
-	addr = ethernet_addr;
-
-	return SUCCESS;
+	return ethernet_addr;
 }
 
 
@@ -215,19 +211,20 @@ void ether_frame_available(uint8_t *buffer, uint16_t buffer_len)
 		return;
 
 #ifdef ETH_CHECK_CRC
+//TODO Ethernet CRC check
 #warning "WARNING: ETH_CHECK_CRC set, but CRC check not yet implemented!"
 #endif
 
 	// NOTE: This could technically be a
-	// length, but we are using standard protocols.
+	// length, but we are only using standard protocols in this stack
 	uint16_t packet_type = uint16_to_nbo(*(uint16_t*)&buffer[ETH_PROTOCOL]);
-
+			usart_write_line(EXAMPLE_USART, "Called Back #1\r\n");	
 	/* Find callbacks that like this packet type. */
 	uint8_t i = 0;
 	for(i = 0; i < ETHER_CALLBACK_SIZE; i++)
 	{
 		if(ether_packet_callbacks[i].required_type == packet_type)
-		{
+		{	
 			(ether_packet_callbacks[i].fn_callback)(&buffer[ETH_HEADERLEN], buffer_len-ETH_HEADERLEN);
 		}
 	}
@@ -273,6 +270,8 @@ RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffe
 	 * All Ethernet frames contain an 8-byte
 	 * preamble.  This is not included here
 	 * as most MACs will generate the automatically.
+	 * Any that don't can add the preamble in the 
+	 * driver code.
 	 */
 
 
@@ -309,7 +308,6 @@ RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffe
 		}
 	}
 
-
 	/* CRC
 	 *
 	 * This is quite complicated and
@@ -318,10 +316,13 @@ RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffe
 	 */
 #ifdef ETH_ADD_SW_CRC
 	// TODO CRC checksum - dont forget endianness!
-	*(uint32_t*)&eth_buffer[eth_buffer_len - ETH_CRCLEN] = 0x00000000;
+	*(uint32_t*)&eth_buffer[eth_buffer_len - ETH_CRCLEN - 1] = 0x00000000;
 #warning "Ethernet CRC calculated in software.  This is not implemented yet!"
 #else
-	*(uint32_t*)&eth_buffer[eth_buffer_len - ETH_CRCLEN] = 0x00000000;
+	*(uint8_t*)&eth_buffer[eth_buffer_len - 5] = 0;
+	*(uint8_t*)&eth_buffer[eth_buffer_len - 4] = 0;
+	*(uint8_t*)&eth_buffer[eth_buffer_len - 3] = 0;
+	*(uint8_t*)&eth_buffer[eth_buffer_len - 2] = 0;
 #endif
 
 	return send_frame(eth_buffer, eth_buffer_len);

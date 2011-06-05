@@ -35,7 +35,7 @@
 #define TIMER_ERROR	0		/* Timer ID of 0 is error */
 
 /** Register timer with uC */
-RETURN_STATUS init_timer();
+RETURN_STATUS init_timer(void);
 
 /** Create a timer */
 uint16_t add_timer(uint32_t ms, void(*handler)(uint16_t));
@@ -47,7 +47,7 @@ RETURN_STATUS kill_timer(uint16_t id, bool fire_timeout);
 bool is_running(uint16_t id);
 
 /** Get notified whenever the micro ticks */
-void timer_tick_callback();
+void timer_tick_callback(void);
 
 
 #endif

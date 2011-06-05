@@ -55,7 +55,7 @@
 
 /* ARP reply timeout (ms) */
 #ifndef ARP_REPLY_TIMEOUT
-#define ARP_REPLY_TIMEOUT	500
+#define ARP_REPLY_TIMEOUT	5000
 #endif
 
 /* ARP table entry timeout (ms) */

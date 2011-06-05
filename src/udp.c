@@ -44,6 +44,11 @@ struct udp_callback_element
 static struct udp_callback_element udp_callbacks[UDP_LISTEN_SIZE];
 
 
+#define UDP_PSEUDO_HEADER_LEN	12
+#define UDP_HEADER_LEN			8
+
+#define UDP_CHECKSUM			6
+
 /****************************************************
  *    Function: init_udp
  * Description: Initialise udp.
@@ -177,18 +182,43 @@ void udp_arrival_callback(const uint8_t  *src_addr, const uint8_t* buffer, const
 	 * Check the checksum, then find out who
 	 * wants the data and forward it on to them.
 	 */
+	if(buffer_len < UDP_HEADER_LEN)
+	{
+		return;
+	}
 
-#ifdef UDP_CHECK_CHECKSUM
-#warning "Warning: UDP_CHECK_CHECKSUM set, but feature not yet implemented!"
-#endif
+
+	/* Build the pseudo-header 
+	 *
+	 *      0      7 8     15 16    23 24    31
+     *     +--------+--------+--------+--------+
+     *     |          Source Address     	   |
+     *     +--------+--------+--------+--------+
+     *     |        Destination Address        |
+     *     +--------+--------+--------+--------+
+     *     | Zeros  |Protocol|   UDP Length    |
+     *     +--------+--------+--------+--------+
+	 *
+	 */
+	const uint8_t *dest_addr = get_ipv4_addr();
+	uint8_t pseudo_header[UDP_PSEUDO_HEADER_LEN] = { src_addr[0], src_addr[1], src_addr[2], src_addr[3],
+									dest_addr[0], dest_addr[1], dest_addr[2], dest_addr[3],
+									0x00, IP_UDP, uint16_to_nbo(buffer_len)
+								};
+
+	uint16_t checksum_verify = checksum_fragmented(pseudo_header, sizeof(pseudo_header), buffer, buffer_len, UDP_PSEUDO_HEADER_LEN + UDP_CHECKSUM);
+	uint16_t *incomming_checksum = (uint16_t*)&buffer[UDP_CHECKSUM];
+	if( *incomming_checksum != uint16_to_nbo(checksum_verify) )
+	{
+		return;
+	}
+
 
 	/*
 	 * Find out who is listening to the port.
 	 * If nobody, then packet wont get any further.
 	 */
-
-	uint16_t port = uint16_to_nbo(*(uint16_t*)&buffer[2]);
-
+	uint16_t port = uint16_from_nbo(*(uint16_t*)&buffer[2]);
 
 	uint8_t i = 0;
 	for(i = 0; i < UDP_LISTEN_SIZE; i++)
@@ -197,7 +227,7 @@ void udp_arrival_callback(const uint8_t  *src_addr, const uint8_t* buffer, const
 		{
 			if(udp_callbacks[i].port == port && udp_callbacks[i].callback_fn != NULL)
 			{
-				udp_callbacks[i].callback_fn(&buffer[8], buffer_len-8);
+				udp_callbacks[i].callback_fn(&buffer[UDP_HEADER_LEN], buffer_len - UDP_HEADER_LEN);
 			}
 		}
 	}
@@ -241,7 +271,7 @@ RETURN_STATUS send_udp(const uint8_t* dest_addr, const uint16_t port, const uint
 	/*
 	 * UDP length is header + buffer
 	 */
-	const uint16_t udp_packet_len = 8 + buffer_len;
+	const uint16_t udp_packet_len = UDP_HEADER_LEN + buffer_len;
 	if(udp_packet_len > UDP_MAX_PACKET)
 	{
 		return FAILURE;
@@ -260,14 +290,12 @@ RETURN_STATUS send_udp(const uint8_t* dest_addr, const uint16_t port, const uint
 	*(uint16_t*)&udp_packet[4] = uint16_to_nbo(udp_packet_len);
 
 	/* Checksum */
-	*(uint16_t*)&udp_packet[6] = 0x0000; /* Initialise checksum to 0*/
+	*(uint16_t*)&udp_packet[UDP_CHECKSUM] = 0x0000; /* Initialise checksum to 0*/
 
 	/* Data */
-	sr_memcpy(&udp_packet[8], buffer, buffer_len);
+	sr_memcpy(&udp_packet[UDP_HEADER_LEN], buffer, buffer_len);
 
 
-	/* Use a 32bit sum because the carries need to be added to the 16bit result. */
-	uint32_t checksum = 0;
 	/*
 	 * Checksum the pseudo-header:
 	 *
@@ -281,51 +309,14 @@ RETURN_STATUS send_udp(const uint8_t* dest_addr, const uint16_t port, const uint
      *     +--------+--------+--------+--------+
 	 *
 	 */
-	uint8_t local_addr[4];
-	get_ipv4_addr(local_addr);
-	checksum += (local_addr[0] << 8) | (local_addr[1]);
-	checksum += (local_addr[2] << 8) | (local_addr[3]);
+	const uint8_t *local_addr = get_ipv4_addr();
+	uint8_t pseudo_header[UDP_PSEUDO_HEADER_LEN] = { local_addr[0], local_addr[1], local_addr[2], local_addr[3],
+									dest_addr[0], dest_addr[1], dest_addr[2], dest_addr[3],
+									0x00, IP_UDP, uint16_to_nbo(udp_packet_len)
+								};
 
-	checksum += (dest_addr[0] << 8) | (dest_addr[1]);
-	checksum += (dest_addr[2] << 8) | (dest_addr[3]);
-
-	checksum += IP_UDP;
-	checksum += udp_packet_len;
-
-
-	/*
-	 * Now checksum the real header & data
-	 * 16bits at a time
-	 */
-	uint16_t i = 0;
-	for(i = 0; i <= udp_packet_len - 2; i+=2)
-	/* ; (...<=...-2...) to compensate for odd length packets */
-	{
-		checksum += (udp_packet[i] << 8) | (udp_packet[i+1]);
-	}
-
-	/* If the packet contains an odd number of bytes
-	 * add a blank padding byte */
-	if(udp_packet_len & 1)
-	{
-		checksum += (udp_packet[udp_packet_len-1] << 8) & 0xFF00;
-	}
-
-	/* Convert to 16bit (truncate) then add the carry bits.*/
-	checksum = (checksum & 0x0000FFFF) + (checksum >> 16);
-
-	/* Ones complement everything */
-	checksum = ~checksum;
-
-	/* Checksum must not be zero, as that means checksum is ignored.
-	 * Instead send all ones. */
-	if(checksum == 0)
-	{
-		checksum = ~(0);
-	}
-
-	uint16_t final_sum = checksum & 0x0000FFFF;
-	*(uint16_t*)&udp_packet[6] = uint16_to_nbo(final_sum);
+	uint16_t checksum = checksum_fragmented(pseudo_header, sizeof(pseudo_header), udp_packet, udp_packet_len, UDP_PSEUDO_HEADER_LEN + UDP_CHECKSUM);
+	*(uint16_t*)&udp_packet[UDP_CHECKSUM] = uint16_to_nbo(checksum);
 
 	/* Wrap it up in an IP packet for sending */
 	return send_ip4_datagram(dest_addr, udp_packet, udp_packet_len, IP_UDP);

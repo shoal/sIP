@@ -30,7 +30,7 @@
 
 #include "stack_defines.h"
 #include "timer.h"
-#include "link_uc.h"
+#include "link_uc_mac.h"
 
 enum timer_status_t
 {
@@ -44,11 +44,11 @@ struct timer_element
 {
 	/*TODO: Should any of these be volatile, as they
 	 * will be updated in an interrupt callback. */
-	uint16_t timeout;
-	enum timer_status_t status;
+	volatile uint16_t timeout;
+	volatile enum timer_status_t status;
 	void(*callback)(uint16_t);
 };
-struct timer_element timer_store[TIMER_COUNT];
+volatile struct timer_element timer_store[TIMER_COUNT];
 
 /****************************************************
  *    Function: init_timer
@@ -108,7 +108,6 @@ RETURN_STATUS init_timer()
  ***************************************************/
 uint16_t add_timer(uint32_t ms, void(*handler)(uint16_t))
 {
-
 	/*
 	 * Each timer ID is the index.
 	 * If we run out of timers, return 0.
@@ -150,6 +149,8 @@ uint16_t add_timer(uint32_t ms, void(*handler)(uint16_t))
  ***************************************************/
 RETURN_STATUS kill_timer(uint16_t id, bool fire_timeout)
 {
+	id--; /* Because 0 is used as an error code elsewhere */
+
 	if(timer_store[id].timeout != 0 && timer_store[id].status != TIMER_EMPTY)
 	{
 		timer_store[id].status = TIMER_EMPTY;
@@ -185,6 +186,7 @@ RETURN_STATUS kill_timer(uint16_t id, bool fire_timeout)
  ***************************************************/
 bool is_running(uint16_t id)
 {
+	id--; /* Because 0 is used as en error code, so 1 was added */
 
 	if(timer_store[id].status == TIMER_RUNNING)
 	{
@@ -208,6 +210,7 @@ bool is_running(uint16_t id)
  ***************************************************/
 void timer_tick_callback()
 {
+
 	/*
 	 * Iterate through all timers, decrementing timeout.
 	 * If timeout is 0, call the callback and remove from the list.
@@ -222,7 +225,10 @@ void timer_tick_callback()
 
 			if(timer_store[i].timeout == 0 )
 			{
-				timer_store[i].callback(i);
+				if(timer_store[i].callback != NULL)
+				{
+					timer_store[i].callback(i+1); /* +1 so '0' isn't used as an ID */
+				}
 				timer_store[i].status = TIMER_EMPTY;
 				timer_store[i].callback = NULL;
 			}

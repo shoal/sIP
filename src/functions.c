@@ -60,6 +60,24 @@ uint16_t uint16_to_nbo(uint16_t val)
 }
 
 
+/****************************************************
+ *    Function: uint16_to_nbo
+ * Description: Convert a 16-bit number in Network Byte Order
+ * 				(big endian) to 'native-endian' (might be the same!).
+ *
+ *	Input:
+ *		val		Value to convert back
+ *
+ *	Return:
+ * 		uint16_t
+ ***************************************************/
+uint16_t uint16_from_nbo(uint16_t val)
+{
+	/* Just use uint16_to_nbo!  If we are using big-endian, then
+	 * it will stay as-is.  If not, the bytes will be swapped. */
+	return uint16_to_nbo(val);
+}
+
 
 /****************************************************
  *    Function: sr_memset
@@ -169,6 +187,72 @@ uint16_t checksum(const uint8_t *buffer, uint16_t len, uint8_t checksum_location
 	{
 		sum += (buffer[len - 1] << 8) & 0x00000000;
 	}
+
+	/* Keep folding until all carry bits are added */
+	while(sum >> 16)
+	{
+		sum += (sum & 0x0000FFFF) + (sum >> 16);
+	}
+
+	/* Ones-complement */
+	sum = ~sum;
+
+	return (sum == 0) ? 0xFFFF : (uint16_t)sum;
+
+}
+
+
+/****************************************************
+ *    Function: checksum_fragmented
+ * Description: Creates network checksum from a couple
+ *				of buffers, where 'header' is (usually)
+ *				a pseudo-header (eg UDP)
+ *
+ *	Input:
+ *		header		First fragment data
+ *		header_len	First fragment len
+ *		data		Second fragment data
+ *		data_len	Second fragment len
+ *		checksum_location	Location in the CONCATENATED buffers where the checksum (to ignore) is expected
+ *
+ *	Return:
+ * 		uint16_t
+ ***************************************************/
+uint16_t checksum_fragmented(const uint8_t *header, uint16_t header_len, const uint8_t *data, uint16_t data_len, uint8_t checksum_location)
+{
+	uint32_t sum = 0;
+	uint8_t i = 0;
+
+
+	/* Sum header first */
+	for(i = 0; i < header_len - 1; i+=2)
+	{
+		if(i != checksum_location)
+		{
+			sum += (header[i] << 8) | header[i+1];
+		}
+	}
+
+	/* if length is odd, add blank padding */
+	if( ((header_len / 2) * 2) != header_len)
+	{
+		sum += (header[header_len - 1] << 8) & 0x00000000;
+	}
+
+	/* Then sum data */
+	for(i = 0; i < data_len - 1; i+=2)
+	{
+		if(i != checksum_location - header_len)
+		{
+			sum += (data[i] << 8) | data[i+1];
+		}
+	}
+	if( ((data_len / 2) * 2) != data_len)
+	{
+		sum += (data[data_len - 1] << 8) & 0x00000000;
+	}
+
+
 
 	/* Keep folding until all carry bits are added */
 	while(sum >> 16)

@@ -55,6 +55,7 @@
 
 
 /* Some implementation specific defines */
+#define ICMP_HEADER_LEN	8
 #define ICMP_PING_LEN	12
 
 
@@ -138,7 +139,7 @@ void icmp_arrival_callback(const uint8_t *src_addr, const uint8_t* buffer, const
 	 *
 	 * Check the checksum, then work out what to do next
 	 */
-	if(buffer_len < 4)
+	if(buffer_len < ICMP_HEADER_LEN)
 	{
 		/* Dont bother with error code because this shouldnt really
 		 * have anything to do with us. */
@@ -150,7 +151,7 @@ void icmp_arrival_callback(const uint8_t *src_addr, const uint8_t* buffer, const
 	uint16_t rechecked_checksum = uint16_to_nbo( checksum(buffer, buffer_len, ICMP_CHECKSUM) );
 	if(incomming_checksum != rechecked_checksum)
 	{
-		last_error = INCOMMING_CHECKSUM;
+//		last_error = INCOMMING_CHECKSUM;
 		return;
 	}
 

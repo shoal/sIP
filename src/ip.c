@@ -49,6 +49,8 @@ static uint8_t ip_addr[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
 static bool ip_initialised = false;
 
 
+#define IP_CHECKSUM		10
+
 /****************************************************
  *    Function: init_ip
  * Description: Initialise IPv4.
@@ -59,7 +61,7 @@ static bool ip_initialised = false;
  *	Return:
  * 		SUCCESS - hopefully
  ***************************************************/
-RETURN_STATUS init_ip()
+RETURN_STATUS init_ip(void)
 {
 
 	if(ip_initialised)
@@ -119,14 +121,9 @@ RETURN_STATUS set_ipv4_addr(uint8_t addr[4])
  *	Return:
  * 		SUCCESS - hopefully.
  ***************************************************/
-RETURN_STATUS get_ipv4_addr(uint8_t *addr)
+const uint8_t const * get_ipv4_addr(void)
 {
-	addr[0] = ip_addr[0];
-	addr[1] = ip_addr[1];
-	addr[2] = ip_addr[2];
-	addr[3] = ip_addr[3];
-
-	return SUCCESS;
+	return ip_addr;
 }
 
 /****************************************************
@@ -167,7 +164,7 @@ RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const ui
 
 	data[8] = IP_TTL;
 	data[9] = type;
-	*(uint16_t*)&data[10] = 0x0000; /* Checksum (first pass) */
+	*(uint16_t*)&data[IP_CHECKSUM] = 0x0000; /* Checksum (first pass) */
 
 	data[12] = ip_addr[0]; /* Source address */
 	data[13] = ip_addr[1];
@@ -180,7 +177,7 @@ RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const ui
 	data[19] = dest[3];
 
 	/* Check the header checksum */
-	*(uint16_t*)&data[10] = checksum(data, IP_HEADERLEN, 10);
+	*(uint16_t*)&data[10] = checksum(data, IP_HEADERLEN, IP_CHECKSUM);
 
 	uint16_t i = 0, j = 0;
 	for(j = 0, i = IP_HEADERLEN; i < IP_HEADERLEN + buff_len; i++, j++)
@@ -281,15 +278,27 @@ RETURN_STATUS remove_ip4_packet_callback(IP_TYPE packet_type, void (*handler)(co
 void ip_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len)
 {
 
-#ifdef IP_CHECK_CHECKSUM
-#warning "Warning: UDP_CHECK_CHECKSUM set, but feature not yet implemented!"
-#endif
+	/* Make sure we have enough data to at least check the checksum */
+	if(buffer_len < IP_HEADERLEN)
+	{
+		return;
+	}
 
 	/* Get header length (second nibble of first byte)
 	 * contains word-length of header
 	 */
 	uint8_t ihl = (buffer[IP_INCOMMING_HLEN_WORDS] & 0x0F);
 	ihl *= 4;
+
+
+	/* Check checksum */
+	uint16_t *checksum_in = (uint16_t*)&buffer[IP_CHECKSUM];
+	uint16_t checksum_verify = uint16_to_nbo( checksum( buffer, ihl, IP_CHECKSUM) );
+	if(*checksum_in != checksum_verify)
+	{
+		return;
+	}
+
 
 	/* Get the protocol type */
 	uint8_t type = buffer[IP_PROTOCOL];
