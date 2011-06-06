@@ -163,7 +163,7 @@ bool sr_memcmp(const uint8_t* buffa, const uint8_t* buffb, uint16_t len)
  *	Input:
  *		buffer
  *		len
- *		checksum_location	Assume this location to be 0x0000
+ *		checksum_location (to be masked out during sum)
  *
  *	Return:
  * 		uint16_t

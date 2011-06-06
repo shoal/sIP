@@ -77,7 +77,7 @@ TEST(functions, sr_memcmp)
 }
 
 /** Network checksum */
-TEST(functions, checksum)
+TEST(functions, checksum_short)
 {
 	// Combined IP & UDP packet:
 	uint8_t buff[] = {
@@ -86,28 +86,30 @@ TEST(functions, checksum)
 		0, 0, 0, 0,			
 		200, 						//ttl
 		0x11,						//udp
-        0x00, 0x00					//checksum - 0x0000 = ignore
+     		0x00, 0x00					//checksum - 0x0000 = ignore
 	};
 	uint16_t cs = checksum(buff, 12, 10);
-	CHECK_EQUAL(cs, 0x6F75);
+	CHECK_EQUAL(0x6F75, cs);
+}
 
-
-	uint8_t buff2[] = {
+TEST(functions, checksum_long)
+{
+	uint8_t buff[] = {
 		0x45, 0, 					//header ver/len/frag
 		0, 36,						//len
 		0, 0, 0, 0,			
 		200, 						//ttl
 		0x11,						//udp
-        0x6F, 0x75,					//checksum - 0x0000 = ignore
+        	0x6F, 0x75,					//checksum - 0x0000 = ignore
 		192, 168, 1, 2,
 		192, 168, 1, 1,
 		0xfd, 0xe8, 0xfd, 0xe8,		//src/dest port
 		0, 16,						//len
-        0x00, 0x00,					//checksum - 0 = ignore
+        	0x00, 0x00,					//checksum - 0 = ignore
 		'h', 'e', 'l', 'l', 'o', '-', 'm', 'e'
 	};
-	uint16_t cs2 = checksum(buff, 12, 10);
-	CHECK_EQUAL(cs2, 0xCF43);
+	uint16_t cs = checksum(buff, 36, 26);
+	CHECK_EQUAL(0xCF43, cs);
 
 
 	//FAIL("TODO");
