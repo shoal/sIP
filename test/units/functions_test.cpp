@@ -25,10 +25,24 @@ TEST(functions, sr_memset)
 }
 
 /** Convert a uint16_t to Network Byte Order (big endian) **/
+/** NOTE: This will fail on a big endian machine. **/
 TEST(functions, uint16_to_nbo)
 {
-	//FAIL("TODO");
-	//uint16_t uint16_to_nbo(uint16_t val);
+	uint16_t word = 0x00FF;
+	uint8_t *byte = (uint8_t*)&word;
+
+	// We know we have a little endian machine (probably)
+	CHECK_EQUAL(0xFF, *byte);
+	CHECK_EQUAL(0x00, byte[1]);
+
+	// Now check the reverse is true after converting
+	uint16_t big_endianed = uint16_to_nbo(word);
+	uint8_t *big_byte = (uint8_t*)&big_endianed;
+	CHECK_EQUAL(0x00, *big_byte);
+	CHECK_EQUAL(0xFF, big_byte[1]);
+
+
+	//TODO - how to test big endian fn on little endian machine?
 }
 
 /** Copy a chunk of data from one buffer to another **/
@@ -65,5 +79,36 @@ TEST(functions, sr_memcmp)
 /** Network checksum */
 TEST(functions, checksum)
 {
+	// Combined IP & UDP packet:
+	uint8_t buff[] = {
+		0x45, 0, 					//header ver/len/frag
+		0, 36,						//len
+		0, 0, 0, 0,			
+		200, 						//ttl
+		0x11,						//udp
+        0x00, 0x00					//checksum - 0x0000 = ignore
+	};
+	uint16_t cs = checksum(buff, 12, 10);
+	CHECK_EQUAL(cs, 0x6F75);
+
+
+	uint8_t buff2[] = {
+		0x45, 0, 					//header ver/len/frag
+		0, 36,						//len
+		0, 0, 0, 0,			
+		200, 						//ttl
+		0x11,						//udp
+        0x6F, 0x75,					//checksum - 0x0000 = ignore
+		192, 168, 1, 2,
+		192, 168, 1, 1,
+		0xfd, 0xe8, 0xfd, 0xe8,		//src/dest port
+		0, 16,						//len
+        0x00, 0x00,					//checksum - 0 = ignore
+		'h', 'e', 'l', 'l', 'o', '-', 'm', 'e'
+	};
+	uint16_t cs2 = checksum(buff, 12, 10);
+	CHECK_EQUAL(cs2, 0xCF43);
+
+
 	//FAIL("TODO");
 }

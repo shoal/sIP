@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <stdio.h>
 FILE *m_fp;
-static m_secs = 0;
-static m_usecs = 0;
+static uint32_t m_secs = 0;
+static uint32_t m_usecs = 0;
 
 
 // pcap header

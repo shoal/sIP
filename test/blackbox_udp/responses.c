@@ -3,7 +3,6 @@
 #include "../../src/link_uc_mac.h"
 
 #include "responses.h"
-//#include "linux_user_driver.h"
 #include "pcap.h"
 #include <stdint.h>
 
@@ -23,7 +22,7 @@ void arp_response( )
 		0x04,				//ip len
 		0x00, 0x02,			//response
 		0x02, 1, 1, 1, 1, 1,		//whoami
-		192, 168, 1, 10,		//whoami
+                192, 168, 1, 2,		//whoami
 		0x02, 0, 0, 0, 0, 0,		//youare
 		192, 168, 1, 1 };		//youare
 	uint16_t buff_len = 42;
@@ -52,13 +51,13 @@ void ip_response()
 		0, 0, 0, 0,			
 		200, 				//ttl
 		0x11,				//udp
-		0x6f, 0x6d,				//checksum - 0x0000 = ignore
-		192, 168, 1, 10,
+                0x6f, 0x75,				//checksum - 0x0000 = ignore
+                192, 168, 1, 2,
 		192, 168, 1, 1,
 
 		0xfd, 0xe8, 0xfd, 0xe8,		//src/dest port
 		0, 16,				//len
-		0xcf, 0x3b,				//checksum - 0 = ignore
+                0xcf, 0x43,				//checksum - 0 = ignore
 		'h', 'e', 'l', 'l', 'o', '-', 'm', 'e'
 		};
 

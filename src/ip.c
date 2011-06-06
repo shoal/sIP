@@ -179,11 +179,8 @@ RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const ui
 	/* Check the header checksum */
 	*(uint16_t*)&data[10] = checksum(data, IP_HEADERLEN, IP_CHECKSUM);
 
-	uint16_t i = 0, j = 0;
-	for(j = 0, i = IP_HEADERLEN; i < IP_HEADERLEN + buff_len; i++, j++)
-	{
-		data[i] = buffer[j];
-	}
+        /* Copy in the data */
+        sr_memcpy(&data[IP_HEADERLEN], buffer, buff_len);
 
 	/* Get the Ethernet address from the ARP table,
 	 * then send the data (if we have the address */
@@ -296,7 +293,7 @@ void ip_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len)
 	uint16_t checksum_verify = uint16_to_nbo( checksum( buffer, ihl, IP_CHECKSUM) );
 	if(*checksum_in != checksum_verify)
 	{
-		return;
+            //DBG only:      return;
 	}
 
 

@@ -158,7 +158,7 @@ bool sr_memcmp(const uint8_t* buffa, const uint8_t* buffb, uint16_t len)
 /****************************************************
  *    Function: checksum
  * Description: Creates network checksum of a buffer
- *				This is the ones complement of the sum
+ *		This is the ones complement of the sum
  *
  *	Input:
  *		buffer

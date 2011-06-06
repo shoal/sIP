@@ -16,9 +16,9 @@ void incomming_test(const uint8_t* buffer, const uint16_t buffer_len)
 	if(stack_limit-- == 0)
 		return;
 
-	char *data = "testing3!";
-	uint8_t ip[4] = { 192, 168, 1, 10 };
-	RETURN_STATUS ret = send_udp(ip, 65000, data, 10);
+        char *data = "testing3!";
+        uint8_t ip[4] = { 192, 168, 1, 2 };
+        RETURN_STATUS ret = send_udp(ip, 65000, (uint8_t*)data, 9);
 
 
 	if(ret == SUCCESS)
@@ -29,9 +29,8 @@ void incomming_test(const uint8_t* buffer, const uint16_t buffer_len)
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
-
 	uint8_t local_ip_addr[4] = { 192, 168, 1, 1 };
 	uint8_t local_hw_addr[6] = {2, 0, 0, 0, 0, 0 };
 	init_ethernet(local_hw_addr);
@@ -40,7 +39,7 @@ int main()
 	init_arp();
 	init_udp();
 
-	uint8_t ip[4] = { 192, 168, 1, 10 };
+        uint8_t ip[4] = { 192, 168, 1, 2 };
 	uint8_t hw[6] = { 1, 2, 3, 4, 5, 6 };
 
 
@@ -57,7 +56,7 @@ int main()
 		0x00, 0x01,			//response
 
 		0x02, 1, 1, 1, 1, 1,		//known
-		192, 168, 1, 10,		//
+                192, 168, 1, 0x02,		//
 
 		0xff, 0xff, 0xff, 0xff, 0xff, 0xff,		//to find
 		192, 168, 1, 1
@@ -67,7 +66,7 @@ int main()
 	// write to debug file
 	write_pcap(buff, sizeof(buff));
 
-	// send data back
+        // send in original arp request
 	(cb_frame_complete)(buff, sizeof(buff));
 
 	RETURN_STATUS ret = listen_udp(65000, &incomming_test);
@@ -79,7 +78,7 @@ int main()
 	
 
 	char *data = "testingABC!";
-	ret = send_udp(ip, 65000, data, 8);
+        ret = send_udp(ip, 65000, (uint8_t*)data, 8);
 
 
 	if(ret == SUCCESS)
@@ -91,10 +90,8 @@ int main()
 	printf("Send OK: %d\tSend Err: %d\n", send_ok, send_err);
 
 
-	
-	//sleep(1);
-
+        close_pcap();
 
 	return 0;
 
-};
+}

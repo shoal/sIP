@@ -16,8 +16,8 @@ To Use:
  - Results file (capture.pcap) can be viewed in Wireshark
 
 Expected Results:
- - ARP request TO stack
- - ARP request FROM stack
+ - ARP request TO stack & reply
+ - ARP request FROM stack & reply
  - UDP data FROM stack
  - UDP data TO stack
  - (last 2 repeated 50 times)

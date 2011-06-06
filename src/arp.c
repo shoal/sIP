@@ -70,28 +70,39 @@ static volatile struct arp_element arp_table[ARP_TABLE_SIZE];
  ***************************************************/
 RETURN_STATUS init_arp()
 {
-	/* Initialise ARP table */
-	uint16_t i = 0;
-	for(i = 0; i < ARP_TABLE_SIZE; i++)
-	{
-		arp_table[i].valid = false;
-		arp_table[i].timeout_id = 0;
+    static bool bInitedARP = false;
+    if(bInitedARP)
+    {
+        /* Assume this is OK */
+        return SUCCESS;
+    }
+    else
+    {
+        bInitedARP = true;
+    }
 
-		arp_table[i].hw_addr[0] = 0;
-		arp_table[i].hw_addr[1] = 0;
-		arp_table[i].hw_addr[2] = 0;
-		arp_table[i].hw_addr[3] = 0;
-		arp_table[i].hw_addr[4] = 0;
-		arp_table[i].hw_addr[5] = 0;
+    /* Initialise ARP table */
+    uint16_t i = 0;
+    for(i = 0; i < ARP_TABLE_SIZE; i++)
+    {
+            arp_table[i].valid = false;
+            arp_table[i].timeout_id = 0;
 
-		arp_table[i].ip_addr[0] = 0;
-		arp_table[i].ip_addr[1] = 0;
-		arp_table[i].ip_addr[2] = 0;
-		arp_table[i].ip_addr[3] = 0;
-	}
+            arp_table[i].hw_addr[0] = 0;
+            arp_table[i].hw_addr[1] = 0;
+            arp_table[i].hw_addr[2] = 0;
+            arp_table[i].hw_addr[3] = 0;
+            arp_table[i].hw_addr[4] = 0;
+            arp_table[i].hw_addr[5] = 0;
 
-	// Add callback for any ARP packets.
-	return add_ether_packet_callback(ARP, &arp_arrival_callback);
+            arp_table[i].ip_addr[0] = 0;
+            arp_table[i].ip_addr[1] = 0;
+            arp_table[i].ip_addr[2] = 0;
+            arp_table[i].ip_addr[3] = 0;
+    }
+
+    // Add callback for any ARP packets.
+    return add_ether_packet_callback(ARP, &arp_arrival_callback);
 }
 
 
