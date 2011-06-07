@@ -38,13 +38,13 @@ uint16_t uint16_to_nbo(uint16_t val);
 uint16_t uint16_from_nbo(uint16_t val);
 
 /** Set a chunk of memory to a known value **/
-void sr_memset(uint8_t* buffer, uint8_t value, uint16_t len);
+void sr_memset(volatile uint8_t* buffer, volatile uint8_t value, uint16_t len);
 
 /** Copy a chunk of data from one buffer to another **/
-void sr_memcpy(uint8_t* dest, const uint8_t* src, uint16_t len);
+void sr_memcpy(volatile uint8_t* dest, volatile const uint8_t* src, uint16_t len);
 
 /** Compare two buffers **/
-bool sr_memcmp(const uint8_t* buffa, const uint8_t* buffb, uint16_t len);
+bool sr_memcmp(volatile const uint8_t* buffa, volatile const uint8_t* buffb, uint16_t len);
 
 /** Network checksum */
 uint16_t checksum(const uint8_t *buffer, uint16_t len, uint8_t checksum_location);

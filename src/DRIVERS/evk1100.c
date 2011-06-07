@@ -323,7 +323,7 @@ RETURN_STATUS init_mac()
 }
 
 
-RETURN_STATUS send_frame(uint8_t *buffer, const uint16_t buffer_len)
+RETURN_STATUS send_frame(const uint8_t *buffer, const uint16_t buffer_len)
 {
 	usart_write_line(EXAMPLE_USART, "Sending Packet\r\n");
 	

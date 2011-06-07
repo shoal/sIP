@@ -2,6 +2,7 @@
 
 #include "../../src/link_uc_mac.h"
 
+#include "ethernet.h"
 #include "responses.h"
 #include "pcap.h"
 
@@ -16,7 +17,7 @@ RETURN_STATUS init_uc()
 RETURN_STATUS send_frame(const uint8_t *buffer, const uint16_t buffer_len)
 {
 
-	write_pcap(buffer, buffer_len);
+	write_pcap(buffer, buffer_len-ETH_CRCLEN);
 
 	if(buffer[12] == 0x08 && buffer[13] == 0x06)
 	{

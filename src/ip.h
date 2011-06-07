@@ -61,7 +61,7 @@ RETURN_STATUS init_ip(void);
 RETURN_STATUS set_ipv4_addr(uint8_t addr[4]);
 
 /** Get our IP address **/
-const uint8_t const * get_ipv4_addr(void);
+const uint8_t * get_ipv4_addr(void);
 
 /** Send datagram **/
 RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const uint16_t buff_len, IP_TYPE type);

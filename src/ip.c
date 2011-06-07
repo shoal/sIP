@@ -121,7 +121,7 @@ RETURN_STATUS set_ipv4_addr(uint8_t addr[4])
  *	Return:
  * 		SUCCESS - hopefully.
  ***************************************************/
-const uint8_t const * get_ipv4_addr(void)
+const uint8_t * get_ipv4_addr(void)
 {
 	return ip_addr;
 }
@@ -177,10 +177,10 @@ RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const ui
 	data[19] = dest[3];
 
 	/* Check the header checksum */
-	*(uint16_t*)&data[10] = checksum(data, IP_HEADERLEN, IP_CHECKSUM);
+	*(uint16_t*)&data[10] = uint16_to_nbo(checksum(data, IP_HEADERLEN, IP_CHECKSUM));
 
-        /* Copy in the data */
-        sr_memcpy(&data[IP_HEADERLEN], buffer, buff_len);
+    /* Copy in the data */
+    sr_memcpy(&data[IP_HEADERLEN], buffer, buff_len);
 
 	/* Get the Ethernet address from the ARP table,
 	 * then send the data (if we have the address */
@@ -292,8 +292,8 @@ void ip_arrival_callback(const uint8_t* buffer, const uint16_t buffer_len)
 	uint16_t *checksum_in = (uint16_t*)&buffer[IP_CHECKSUM];
 	uint16_t checksum_verify = uint16_to_nbo( checksum( buffer, ihl, IP_CHECKSUM) );
 	if(*checksum_in != checksum_verify)
-	{
-            //DBG only:      return;
+        {
+            return;
 	}
 
 

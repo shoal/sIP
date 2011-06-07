@@ -203,12 +203,12 @@ void udp_arrival_callback(const uint8_t  *src_addr, const uint8_t* buffer, const
 	const uint8_t *dest_addr = get_ipv4_addr();
 	uint8_t pseudo_header[UDP_PSEUDO_HEADER_LEN] = { src_addr[0], src_addr[1], src_addr[2], src_addr[3],
 									dest_addr[0], dest_addr[1], dest_addr[2], dest_addr[3],
-									0x00, IP_UDP, uint16_to_nbo(buffer_len)
+                                                                        0x00, IP_UDP, buffer[4], buffer[5] /*udp_packet[4 & 5] are udp_packet_len*/
 								};
 
 	uint16_t checksum_verify = checksum_fragmented(pseudo_header, sizeof(pseudo_header), buffer, buffer_len, UDP_PSEUDO_HEADER_LEN + UDP_CHECKSUM);
 	uint16_t *incomming_checksum = (uint16_t*)&buffer[UDP_CHECKSUM];
-	if( *incomming_checksum != uint16_to_nbo(checksum_verify) )
+        if( *incomming_checksum != uint16_to_nbo(checksum_verify))
 	{
 		return;
 	}
@@ -311,9 +311,9 @@ RETURN_STATUS send_udp(const uint8_t* dest_addr, const uint16_t port, const uint
 	 */
 	const uint8_t *local_addr = get_ipv4_addr();
 	uint8_t pseudo_header[UDP_PSEUDO_HEADER_LEN] = { local_addr[0], local_addr[1], local_addr[2], local_addr[3],
-									dest_addr[0], dest_addr[1], dest_addr[2], dest_addr[3],
-									0x00, IP_UDP, uint16_to_nbo(udp_packet_len)
-								};
+                                                        dest_addr[0], dest_addr[1], dest_addr[2], dest_addr[3],
+                                                        0x00, IP_UDP, udp_packet[4], udp_packet[5] /*udp_packet[4 & 5] are udp_packet_len*/
+                                                        };
 
 	uint16_t checksum = checksum_fragmented(pseudo_header, sizeof(pseudo_header), udp_packet, udp_packet_len, UDP_PSEUDO_HEADER_LEN + UDP_CHECKSUM);
 	*(uint16_t*)&udp_packet[UDP_CHECKSUM] = uint16_to_nbo(checksum);

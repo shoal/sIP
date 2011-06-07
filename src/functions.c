@@ -92,7 +92,7 @@ uint16_t uint16_from_nbo(uint16_t val)
  *	Return:
  * 		void
  ***************************************************/
-void sr_memset(uint8_t* buffer, uint8_t value, uint16_t len)
+void sr_memset(volatile uint8_t* buffer, volatile uint8_t value, uint16_t len)
 {
 	uint16_t i = 0;
 	for(i = 0; i < len; i++)
@@ -115,7 +115,7 @@ void sr_memset(uint8_t* buffer, uint8_t value, uint16_t len)
  *	Return:
  * 		void
  ***************************************************/
-void sr_memcpy(uint8_t* dest, const uint8_t* src, uint16_t len)
+void sr_memcpy(volatile uint8_t* dest, volatile const uint8_t* src, uint16_t len)
 {
 	uint16_t i = 0;
 	for(i = 0; i < len; i++)
@@ -140,7 +140,7 @@ void sr_memcpy(uint8_t* dest, const uint8_t* src, uint16_t len)
  * 		true	Buffers match
  *		false	Buffers do not match
  ***************************************************/
-bool sr_memcmp(const uint8_t* buffa, const uint8_t* buffb, uint16_t len)
+bool sr_memcmp(volatile const uint8_t* buffa, volatile const uint8_t* buffb, uint16_t len)
 {
 	uint16_t i = 0;
 	for(i = 0; i < len; i++)
@@ -174,7 +174,7 @@ uint16_t checksum(const uint8_t *buffer, uint16_t len, uint8_t checksum_location
 	uint8_t i = 0;
 
 	/* Sum in 16-bit blocks */
-	for(i = 0; i < len - 1; i+=2)
+	for(i = 0; i < len; i+=2)
 	{
 		if(i != checksum_location) /* Mask out where the checksum should go */
 		{
@@ -182,22 +182,16 @@ uint16_t checksum(const uint8_t *buffer, uint16_t len, uint8_t checksum_location
 		}
 	}
 
-	/* if buffer length is odd, add blank padding */
-	if( ((len / 2) * 2) != len)
-	{
-		sum += (buffer[len - 1] << 8) & 0x00000000;
-	}
-
 	/* Keep folding until all carry bits are added */
 	while(sum >> 16)
 	{
-		sum += (sum & 0x0000FFFF) + (sum >> 16);
+		sum = (sum & 0x0000FFFF) + (sum >> 16);
 	}
 
 	/* Ones-complement */
 	sum = ~sum;
 
-	return (sum == 0) ? 0xFFFF : (uint16_t)sum;
+	return (uint16_t)sum;
 
 }
 
@@ -223,9 +217,8 @@ uint16_t checksum_fragmented(const uint8_t *header, uint16_t header_len, const u
 	uint32_t sum = 0;
 	uint8_t i = 0;
 
-
 	/* Sum header first */
-	for(i = 0; i < header_len - 1; i+=2)
+	for(i = 0; i < header_len; i+=2)
 	{
 		if(i != checksum_location)
 		{
@@ -233,31 +226,20 @@ uint16_t checksum_fragmented(const uint8_t *header, uint16_t header_len, const u
 		}
 	}
 
-	/* if length is odd, add blank padding */
-	if( ((header_len / 2) * 2) != header_len)
-	{
-		sum += (header[header_len - 1] << 8) & 0x00000000;
-	}
-
 	/* Then sum data */
-	for(i = 0; i < data_len - 1; i+=2)
+	for(i = 0; i < data_len; i+=2)
 	{
-		if(i != checksum_location - header_len)
+		if(i + header_len != checksum_location)
 		{
 			sum += (data[i] << 8) | data[i+1];
 		}
 	}
-	if( ((data_len / 2) * 2) != data_len)
-	{
-		sum += (data[data_len - 1] << 8) & 0x00000000;
-	}
-
 
 
 	/* Keep folding until all carry bits are added */
 	while(sum >> 16)
 	{
-		sum += (sum & 0x0000FFFF) + (sum >> 16);
+		sum = (sum & 0x0000FFFF) + (sum >> 16);
 	}
 
 	/* Ones-complement */

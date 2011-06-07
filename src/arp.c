@@ -470,7 +470,7 @@ void arp_timeout_callback(const uint16_t ident)
  * 		SUCCESS
  * 		FAILURE
  ***************************************************/
-void remove_arp_entry(uint8_t* hw_addr, uint8_t* ip4_addr)
+void remove_arp_entry(volatile uint8_t* hw_addr, volatile uint8_t* ip4_addr)
 {
 	int i = 0;
 	for(i = 0; i < ARP_TABLE_SIZE; i++)

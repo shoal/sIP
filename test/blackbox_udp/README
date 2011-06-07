@@ -7,12 +7,10 @@ Test: /test/blackbox_udp/
 
 To Build:
  - CD to this directory
- # gcc -g -c *.c -I../../src/
- # cp *.o ../../src/
- # gcc -o a.out *.o
+ - Run 'make'
 
 To Use:
- - Run ./a.out
+ - Run ./test.out
  - Results file (capture.pcap) can be viewed in Wireshark
 
 Expected Results:
@@ -20,5 +18,5 @@ Expected Results:
  - ARP request FROM stack & reply
  - UDP data FROM stack
  - UDP data TO stack
- - (last 2 repeated 50 times)
+ - (last two repeated)
 

@@ -61,7 +61,7 @@ static bool eth_initialised = false;
  *	Return:
  * 		SUCCESS
  ***************************************************/
-RETURN_STATUS init_ethernet()
+RETURN_STATUS init_ethernet(void)
 {
 	if(eth_initialised)
 		return FAILURE;
@@ -118,7 +118,7 @@ RETURN_STATUS set_ether_addr(const uint8_t addr[6])
  *	Return:
  * 		SUCCESS
  ***************************************************/
-const uint8_t const * get_ether_addr(void)
+const uint8_t * get_ether_addr(void)
 {
 	return ethernet_addr;
 }
@@ -312,17 +312,19 @@ RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffe
 	 *
 	 * This is quite complicated and
 	 * most MAC controllers will do
-	 * it for us, so dont by default
+	 * it for us, so dont by default,
+	 * but do include it in the buffer 
+	 * just in case
 	 */
 #ifdef ETH_ADD_SW_CRC
 	// TODO CRC checksum - dont forget endianness!
-	*(uint32_t*)&eth_buffer[eth_buffer_len - ETH_CRCLEN - 1] = 0x00000000;
+	*(uint32_t*)&eth_buffer[eth_buffer_len - ETH_CRCLEN] = 0x00000000;
 #warning "Ethernet CRC calculated in software.  This is not implemented yet!"
 #else
-	*(uint8_t*)&eth_buffer[eth_buffer_len - 5] = 0;
 	*(uint8_t*)&eth_buffer[eth_buffer_len - 4] = 0;
 	*(uint8_t*)&eth_buffer[eth_buffer_len - 3] = 0;
 	*(uint8_t*)&eth_buffer[eth_buffer_len - 2] = 0;
+	*(uint8_t*)&eth_buffer[eth_buffer_len - 1] = 0;
 #endif
 
 	return send_frame(eth_buffer, eth_buffer_len);

@@ -1,13 +1,17 @@
 /** COPYRIGHT 2010 Dave Barnard (www.shoalresearch.com) */
-#include "../../src/link_uc_mac.h"
-#include "../../src/arp.h"
-#include "../../src/udp.h"
+#include "link_uc_mac.h"
+#include "arp.h"
+#include "udp.h"
+
+#include "ethernet.h"
+#include "ip.h"
+
 #include "pcap.h"
 #include <stdio.h>
 
 extern void (*cb_frame_complete)(uint8_t *buffer, const uint16_t buffer_len);
 
-uint16_t stack_limit = 99;
+uint16_t stack_limit = 1;
 uint16_t send_ok = 0, send_err = 0;
 
 void incomming_test(const uint8_t* buffer, const uint16_t buffer_len)
@@ -18,7 +22,7 @@ void incomming_test(const uint8_t* buffer, const uint16_t buffer_len)
 
         char *data = "testing3!";
         uint8_t ip[4] = { 192, 168, 1, 2 };
-        RETURN_STATUS ret = send_udp(ip, 65000, (uint8_t*)data, 9);
+        RETURN_STATUS ret = send_udp(ip, 65000, (uint8_t*)data, 8);
 
 
 	if(ret == SUCCESS)
@@ -33,7 +37,8 @@ int main(int argc, char *argv[])
 {
 	uint8_t local_ip_addr[4] = { 192, 168, 1, 1 };
 	uint8_t local_hw_addr[6] = {2, 0, 0, 0, 0, 0 };
-	init_ethernet(local_hw_addr);
+	init_ethernet();
+	set_ether_addr(local_hw_addr);
 	init_ip();
 	set_ipv4_addr(local_ip_addr);
 	init_arp();
@@ -78,7 +83,7 @@ int main(int argc, char *argv[])
 	
 
 	char *data = "testingABC!";
-        ret = send_udp(ip, 65000, (uint8_t*)data, 8);
+        ret = send_udp(ip, 65000, (uint8_t*)data, 10);
 
 
 	if(ret == SUCCESS)

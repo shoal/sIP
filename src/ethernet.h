@@ -57,7 +57,7 @@ RETURN_STATUS init_ethernet(void);
 RETURN_STATUS set_ether_addr(const uint8_t addr[6]);
 
 /** Get ethernet address **/
-const uint8_t const* get_ether_addr(void);
+const uint8_t * get_ether_addr(void);
 
 /** Add a callback for a particular packet type **/
 RETURN_STATUS add_ether_packet_callback(ETHERNET_TYPE packet_type, void (*handler)(const uint8_t *buffer, const uint16_t buffer_len));
