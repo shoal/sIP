@@ -4,15 +4,13 @@
  GENERAL
  - Deal with packet fragmentation (for now assume fixed length packets)
  - If PHY/MAC receives a frame that is too large for our max frame, what to do??
- - Remove standard datatypes (int, char) and use uint8_t etc.
  - Optimise ETH_MAXDATA, UDP_MAXDATA, IP_MAXDATA etc in stack_defines.h
  - Convert my crazy buffers to something a bit more manageable.  Zero-Copy??
  - Sort out the init_* functions [if(!init)init]
  - Locate and remove 'magic-numbers' from code
 
  PROTOCOLS
- - Implement checksum validation for incomming UDP and IP
- - Review implementation of Ethernet, ARP, IP and UDP protocols
+ - Review implementation of Ethernet, ARP, IP and UDP protocols - preferably peer review
  - Add ICMP, DHCP and TCP protocols
  - Ethernet CRC generation and checking (is there a need?)
 
@@ -22,15 +20,14 @@
 
  TESTING
  - Locate some hardware for testing & porting
- - Investigate integrating with Linux or VM for enhanced testing
+ - Investigate integrating with Linux or VM for enhanced testing (SLIP?)
 
  DOCUMENTATION
  - Generate documentation for compilation options such enabling IP checksum validation
  - Get some easy instructions together for porting
  - Instructions to include into an AVRStudio/PIC project.
- - FAQ & Doxygen @ shoalresearch.com
-
+ - FAQ, Doxygen & bug tracker @ shoalresearch.com
 
  COPYRIGHT & PREAMBLE
  - Rember to update copyright in 2011 for changed files
- - Ensure details of changes are added to change history
+ - Ensure details of changes are added to change history (start from ver #1?)
