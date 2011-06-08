@@ -300,7 +300,7 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 			/* Has value become true?? */
 			if(arp_table[cached_index].valid == true)
 			{
-				sr_memcpy(&arp_table[cached_index].ip_addr[0], ip4_addr, 4);
+                                sr_memcpy(hw_addr, arp_table[cached_index].hw_addr, 6);
 
 				kill_timer(timer, false);
 
