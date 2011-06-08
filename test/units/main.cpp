@@ -1,4 +1,5 @@
 #include "functions_test.h"
+#include "arp_test.h"
 
 #include "CppUTest/CommandLineTestRunner.h"
 

@@ -5,8 +5,8 @@
 	LFLAGS = -L$(CPPUTESTHOME)/lib/ -L$(CODEHOME) -lCppUTest
 	CFLAGS = -I$(CPPUTESTHOME)/include/ -I$(CODEHOME)/
 
-	OBJECTS = main.o functions_test.o
-	FILES = main.cpp functions_test.cpp
+	OBJECTS = main.o functions_test.o arp_test.o
+	FILES = main.cpp functions_test.cpp arp_test.cpp
 
 	OUTPUT = test.out
 #all:
