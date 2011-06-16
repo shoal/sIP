@@ -1,4 +1,5 @@
 #include "arp_test.h"
+#include "CppUTest/TestHarness.h"
 
 // The file we are testing:
 extern "C"
@@ -10,13 +11,13 @@ extern "C"
 #include "blank_driver.c"
 }
 
-#include "CppUTest/TestHarness.h"
-
 TEST_GROUP(arp)
 {
 	void setup()
 	{
+		init_ip();
 		init_arp();
+		init_ethernet();
 		/*
 		// NOTE: setup doesnt seem to work.
 		// We can be happy-ish to assume arp_table.* = null
@@ -148,10 +149,8 @@ TEST(arp, add_remove_arp_entry)
 }
 
 
-TEST(arp, resolve_ether_addr)
+TEST(arp, resolve_ether_addr_existing)
 {
-#warning Very low code coverage for resolve_ether_addr
-
 	//RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6]);
 	// Make sure it is 0 before test anyway.
 	CHECK(!arp_table[0].valid);
@@ -167,7 +166,6 @@ TEST(arp, resolve_ether_addr)
 	RETURN_STATUS ret = add_arp_entry(hw_addr, ip_addr, 100, true);
 	CHECK_EQUAL(SUCCESS, ret);
 
-	// The main test - very low coverage here.
 	uint8_t hw_addr_out[6] = {0};
 	ret = resolve_ether_addr(ip_addr, hw_addr_out);
 
@@ -180,6 +178,47 @@ TEST(arp, resolve_ether_addr)
 	CHECK_EQUAL(0x44, hw_addr_out[3]);
 	CHECK_EQUAL(0x55, hw_addr_out[4]);
 	CHECK_EQUAL(0x66, hw_addr_out[5]);
+
+	// Assume the above will fill entry 0 & no further
+	remove_arp_entry(hw_addr, ip_addr);
+	CHECK(!arp_table[0].valid);
+	CHECK(!arp_table[1].valid);
+	CHECK(!arp_table[2].valid);
+}
+
+
+TEST(arp, resolve_ether_addr_new)
+{
+	//RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6]);
+	// Make sure it is 0 before test anyway.
+	CHECK(!arp_table[0].valid);
+	CHECK(!arp_table[1].valid);
+	CHECK(!arp_table[2].valid);
+
+
+	uint8_t hw_addr[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+	uint8_t ip_addr[4] = {0x77, 0x88, 0x99, 0xAA };
+
+	// Set IP to match response in blank_driver.c
+	uint8_t our_ip[4] = {192, 168, 1, 1};
+	set_ipv4_addr(our_ip);
+	
+	// Set MAC to match response in blank_driver.c
+	uint8_t our_mac[6] = {0x01, 0x02, 0x03, 0x04, 0x06, 0x07};
+	set_ether_addr(our_mac);
+	
+	RETURN_STATUS ret = resolve_ether_addr(ip_addr, hw_addr);
+
+	// Should have got a response.
+	CHECK_EQUAL(SUCCESS, ret);
+
+	// MAC addr
+	CHECK_EQUAL(0x11, hw_addr[0]);
+	CHECK_EQUAL(0x22, hw_addr[1]);
+	CHECK_EQUAL(0x33, hw_addr[2]);
+	CHECK_EQUAL(0x44, hw_addr[3]);
+	CHECK_EQUAL(0x55, hw_addr[4]);
+	CHECK_EQUAL(0x66, hw_addr[5]);
 
 	// Assume the above will fill entry 0 & no further
 	remove_arp_entry(hw_addr, ip_addr);

@@ -215,6 +215,8 @@ void ether_frame_available(uint8_t *buffer, uint16_t buffer_len)
 #warning "WARNING: ETH_CHECK_CRC set, but CRC check not yet implemented!"
 #endif
 
+#warning Ethernet layer is promiscuous!
+
 	// NOTE: This could technically be a
 	// length, but we are only using standard protocols in this stack
 	uint16_t packet_type = uint16_to_nbo(*(uint16_t*)&buffer[ETH_PROTOCOL]);
