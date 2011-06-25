@@ -13,22 +13,49 @@ extern "C"
 
 TEST_GROUP(arp)
 {
+	/* This is called for EVERY test
+	 * which is OK, but in reality it
+	 * would be called once per program run.
+	 * We arent really bothered about cleanup
+	 * in sIP, as it gets done on powerdown.
+	 * Therefore, tests should clean up after themselves.
+	 */
 	void setup()
 	{
-		init_ip();
-		init_arp();
 		init_ethernet();
-		/*
-		// NOTE: setup doesnt seem to work.
-		// We can be happy-ish to assume arp_table.* = null
-		CHECK(!bInitedARP);
-		arp_table[0].valid = true;
+
+		// Check the initialise to .valid=false is correct
+		static bool bRunOnce = false;
+		if(!bRunOnce)
+		{	
+			bRunOnce = true;
+			arp_table[0].valid = true;
+		}
 
 		RETURN_STATUS ret = init_arp();
 		CHECK_EQUAL(SUCCESS, ret);
 
+		// I think we need this too.
+		init_ip();
+
+		// Check enough to know it wasnt just luck
 		CHECK(!arp_table[0].valid);
-		*/
+		CHECK(!arp_table[1].valid);
+		CHECK(!arp_table[2].valid);
+		CHECK(!arp_table[3].valid);
+		CHECK(!arp_table[4].valid);
+		CHECK(!arp_table[5].valid);
+	}
+
+	void teardown()
+	{
+		// Enough to know it isnt luck
+		CHECK(!arp_table[0].valid);
+		CHECK(!arp_table[1].valid);
+		CHECK(!arp_table[2].valid);
+		CHECK(!arp_table[3].valid);
+		CHECK(!arp_table[4].valid);
+		CHECK(!arp_table[5].valid);
 	}
 };
 
@@ -37,12 +64,6 @@ TEST(arp, add_arp_entry)
 	// This test will just test that data is correctly
 	// added to the struct.  The add/remove aspect is
 	// tested in add_remove_arp_entry.
-
-	// Make sure it is 0 before test anyway.
-	CHECK(!arp_table[0].valid);
-	CHECK(!arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
-
 
 	// Record time info:
 	int iOldTime = arp_table[0].timeout_id;
@@ -53,6 +74,7 @@ TEST(arp, add_arp_entry)
 	CHECK_EQUAL(SUCCESS, ret);
 
 	CHECK(arp_table[0].valid);
+	CHECK(!arp_table[1].valid);
 
 	// Make sure time ID is roughly right
 	CHECK(0 != arp_table[0].timeout_id);
@@ -75,20 +97,10 @@ TEST(arp, add_arp_entry)
 
 	// Assume the above will fill entry 0 & no further
 	remove_arp_entry(hw_addr, ip_addr);
-	CHECK(!arp_table[0].valid);
-	CHECK(!arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
-
 }
 
 TEST(arp, add_remove_arp_entry)
 {
-
-	// Make sure it is 0 before test anyway.
-	CHECK(!arp_table[0].valid);
-	CHECK(!arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
-
 	uint8_t hw_addr[6] = {0x01, 0x01, 0x02, 0x02, 0x03, 0x03 };
 	uint8_t ip_addr[4] = {0x04, 0x05, 0x06, 0x07 };
 	RETURN_STATUS ret = add_arp_entry(hw_addr, ip_addr, 100, true);
@@ -120,44 +132,11 @@ TEST(arp, add_remove_arp_entry)
 
 	// Leave it how we found it;
 	remove_arp_entry(hw_addr, ip_addr);
-	CHECK(!arp_table[0].valid);
-	CHECK(arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
-
 	remove_arp_entry(hw_addr2, ip_addr2);
-	CHECK(!arp_table[0].valid);
-	CHECK(!arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
-
-	// One for luck - make sure it hits entry 0.
-	ret = add_arp_entry(hw_addr2, ip_addr2, 100, true);
-	CHECK(arp_table[0].valid);
-	CHECK(!arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
-	remove_arp_entry(hw_addr2, ip_addr2);
-	CHECK(!arp_table[0].valid);
-	CHECK(!arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
-
-	remove_arp_entry(hw_addr2, ip_addr2); // Double remove should be meaningless
-
-	CHECK(!arp_table[0].valid);
-
-	CHECK(!arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
-
 }
-
 
 TEST(arp, resolve_ether_addr_existing)
 {
-	//RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6]);
-	// Make sure it is 0 before test anyway.
-	CHECK(!arp_table[0].valid);
-	CHECK(!arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
-
-
 	// Record time info:
 	int iOldTime = arp_table[0].timeout_id;
 
@@ -181,21 +160,11 @@ TEST(arp, resolve_ether_addr_existing)
 
 	// Assume the above will fill entry 0 & no further
 	remove_arp_entry(hw_addr, ip_addr);
-	CHECK(!arp_table[0].valid);
-	CHECK(!arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
 }
 
 
 TEST(arp, resolve_ether_addr_new)
 {
-	//RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6]);
-	// Make sure it is 0 before test anyway.
-	CHECK(!arp_table[0].valid);
-	CHECK(!arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
-
-
 	uint8_t hw_addr[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 	uint8_t ip_addr[4] = {0x77, 0x88, 0x99, 0xAA };
 
@@ -222,16 +191,12 @@ TEST(arp, resolve_ether_addr_new)
 
 	// Assume the above will fill entry 0 & no further
 	remove_arp_entry(hw_addr, ip_addr);
-	CHECK(!arp_table[0].valid);
-	CHECK(!arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
 }
 
 
 
 TEST(arp, incomming_arp_arrival_callback)
 {
-	CHECK(!arp_table[0].valid);
 
     // Make sure IP address is right
 	uint8_t ip_addr[4] = { 0x12, 0x34, 0x56, 0x78 };
@@ -241,15 +206,15 @@ TEST(arp, incomming_arp_arrival_callback)
 	uint8_t them_ip[4] = { 0xAB, 0xAC, 0xAD, 0xAE };
 
 	uint8_t buff[] = {
-		0x00, 0x01,							//ether
-		0x08, 0x00,							//arp
-		0x06,								//hw len
-		0x04,								//ip len
-		0x00, 0x02,							//response
-		them_hw[0], them_hw[1], them_hw[2], them_hw[3], them_hw[4], them_hw[5],	//whoami
-        them_ip[0], them_ip[1], them_ip[2], them_ip[3],							//whoami
-		0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,										//youare (dont care)
-		ip_addr[0], ip_addr[1], ip_addr[2], ip_addr[3]							//youare
+	0x00, 0x01,					//ether
+	0x08, 0x00,					//arp
+	0x06,						//hw len
+	0x04,						//ip len
+	0x00, 0x02,					//response
+	them_hw[0], them_hw[1], them_hw[2], them_hw[3], them_hw[4], them_hw[5],	//whoami
+        them_ip[0], them_ip[1], them_ip[2], them_ip[3],				//whoami
+	0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,					//youare (dont care)
+	ip_addr[0], ip_addr[1], ip_addr[2], ip_addr[3]				//youare
 	};
 	uint16_t buff_len = 28;
 
@@ -258,7 +223,6 @@ TEST(arp, incomming_arp_arrival_callback)
 
 	// The main event
 	arp_arrival_callback(buff, buff_len);
-
 
 	CHECK(arp_table[0].valid);
 
@@ -272,9 +236,6 @@ TEST(arp, incomming_arp_arrival_callback)
 	CHECK(sr_memcmp(them_ip, arp_table[0].ip_addr, 4));
 
 	remove_arp_entry(them_hw, them_ip);
-	CHECK(!arp_table[0].valid);
-	CHECK(!arp_table[1].valid);
-	CHECK(!arp_table[2].valid);
 }
 
 TEST(arp, outgoing_arp_arrival_callback)

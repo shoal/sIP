@@ -102,6 +102,7 @@ RETURN_STATUS init_arp()
     }
 
     // Add callback for any ARP packets.
+    init_ethernet();
     return add_ether_packet_callback(ARP, &arp_arrival_callback);
 }
 
@@ -296,7 +297,6 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 
 		do
 		{
-
 			/* Has value become true?? */
 			if(arp_table[cached_index].valid == true)
 			{

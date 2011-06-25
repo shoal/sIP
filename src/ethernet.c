@@ -47,10 +47,6 @@ static struct ether_packet_callback_element ether_packet_callbacks[ETHER_CALLBAC
 /** Keep track of who we are! */
 uint8_t ethernet_addr[6];
 
-
-/* Dont initialise more than once! */
-static bool eth_initialised = false;
-
 /****************************************************
  *    Function: init_ethernet
  * Description: Initialise ethernet.
@@ -63,8 +59,10 @@ static bool eth_initialised = false;
  ***************************************************/
 RETURN_STATUS init_ethernet(void)
 {
+	/* Dont initialise more than once! */
+	static bool eth_initialised = false;
 	if(eth_initialised)
-		return FAILURE;
+		return SUCCESS;
 
 
 	/* Initialise callback type list */

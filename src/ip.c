@@ -45,10 +45,6 @@ static struct ip_callback_element ip_callbacks[IP_CALLBACK_SIZE];
 static uint8_t ip_addr[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
 
 
-/* Dont initialise this protocol more than once */
-static bool ip_initialised = false;
-
-
 #define IP_CHECKSUM		10
 
 /****************************************************
@@ -63,9 +59,11 @@ static bool ip_initialised = false;
  ***************************************************/
 RETURN_STATUS init_ip(void)
 {
+	/* Dont initialise this protocol more than once */
+	static bool ip_initialised = false;
 
 	if(ip_initialised)
-		return FAILURE;
+		return SUCCESS;
 
 
 	/* IP requires ethernet */
