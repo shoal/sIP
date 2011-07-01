@@ -191,7 +191,7 @@ uint16_t checksum(const uint8_t *buffer, uint16_t len, uint8_t checksum_location
 	/* Ones-complement */
 	sum = ~sum;
 
-	return (uint16_t)sum;
+	return ((uint16_t)sum == 0) ? 0xFFFF : (uint16_t)sum;
 
 }
 
@@ -248,3 +248,4 @@ uint16_t checksum_fragmented(const uint8_t *header, uint16_t header_len, const u
 	return (sum == 0) ? 0xFFFF : (uint16_t)sum;
 
 }
+

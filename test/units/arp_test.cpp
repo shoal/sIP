@@ -4,11 +4,11 @@
 // The file we are testing:
 extern "C"
 {
-#include "arp.c"
-#include "timer.c"
-#include "ethernet.c"
-#include "ip.c"
+#include "timer.h"
+#include "ethernet.h"
+#include "ip.h"
 #include "blank_driver.c"
+#include "arp.c"
 }
 
 TEST_GROUP(arp)
@@ -34,9 +34,6 @@ TEST_GROUP(arp)
 
 		RETURN_STATUS ret = init_arp();
 		CHECK_EQUAL(SUCCESS, ret);
-
-		// I think we need this too.
-		init_ip();
 
 		// Check enough to know it wasnt just luck
 		CHECK(!arp_table[0].valid);
@@ -238,14 +235,14 @@ TEST(arp, incomming_arp_arrival_callback)
 	remove_arp_entry(them_hw, them_ip);
 }
 
-TEST(arp, outgoing_arp_arrival_callback)
+IGNORE_TEST(arp, outgoing_arp_arrival_callback)
 {
-#warning outgoing_arp_arrival_callback TODO
+//#warning outgoing_arp_arrival_callback TODO
 }
 
-TEST(arp, arp_timeout_callback)
+IGNORE_TEST(arp, arp_timeout_callback)
 {
-#warning arp_timeout_callback TODO
+//#warning arp_timeout_callback TODO
 //	ARP timeout callback
 	//void arp_timeout_callback(const uint16_t ident);
 }

@@ -34,6 +34,10 @@
 /* Length of header */
 #define ETH_HEADERLEN	14
 
+/* Minimum length of packet */
+#define ETH_MINDATA	36	//TODO - check
+
+
 /* Length of footer (CRC) */
 #define ETH_CRCLEN	4
 

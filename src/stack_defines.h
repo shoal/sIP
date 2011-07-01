@@ -76,10 +76,6 @@
 #define ETH_MAXDATA			1000
 #endif
 
-#ifndef ETH_MINDATA
-#define ETH_MINDATA			36	//TODO - check
-#endif
-
 /* Number of IP protocols allowed */
 #ifndef IP_CALLBACK_SIZE
 #define IP_CALLBACK_SIZE	5
