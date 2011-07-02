@@ -1,6 +1,9 @@
 /* Copyright 2010 Dave Barnard (www.shoalresearch.com) */
 
-#include "../../src/link_uc_mac.h"
+#include "CppUTest/TestHarness.h"
+
+#include "link_uc_mac.h"
+#include "functions.h"
 #include <malloc.h>
 
 /** Initialise IC **/

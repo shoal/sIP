@@ -100,6 +100,14 @@ TEST(functions, checksum_basics)
 	CHECK_EQUAL(0xFDFD, cs);
 }
 
+TEST(functions, checksum_blank)
+{
+	uint8_t buff[] = { 0xFF, 0xFF };
+	uint16_t cs = checksum(buff, 2, 2);
+	
+	CHECK_EQUAL(0xFFFF, cs);
+}
+
 TEST(functions, checksum_short_ip)
 {
 	uint8_t buff[] = {
@@ -131,7 +139,7 @@ TEST(functions, checksum_freq_failure)
 }
 
 /** Network fragmented checksum */
-TEST(functions, checksum_fragmented)
+TEST(functions, checksum_fragmented_1)
 {
 	uint8_t buff[] = {
 		0x45, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 0x00, 0xc8, 0x11, 0x75, 0x6f, 0xc0, 0xa8, 0x01, 0x01, 0xc0, 0xa8, 0x01, 0x02
@@ -140,6 +148,17 @@ TEST(functions, checksum_fragmented)
 	CHECK_EQUAL(0x6F75, cs);
 
 	cs = checksum_fragmented(buff, 6, &buff[6], 14, 10);
+	CHECK_EQUAL(0x6F75, cs);
+}
+TEST(functions, checksum_fragmented_2)
+{
+	uint8_t buff[] = {
+		0x45, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 0x00, 0xc8, 0x11, 0x00, 0x00, 0xc0, 0xa8, 0x01, 0x01, 0xc0, 0xa8, 0x01, 0x02
+	};
+	uint16_t cs = checksum_fragmented(buff, 10, &buff[10], 10, 4);
+	CHECK_EQUAL(0x6F75, cs);
+
+	cs = checksum_fragmented(buff, 6, &buff[6], 14, 4);
 	CHECK_EQUAL(0x6F75, cs);
 }
 

@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright 2010 Dave Barnard
+ * Copyright 2010, 2011 Dave Barnard
  *
  *  This file is part of sIP
  *
@@ -36,7 +36,7 @@ enum timer_status_t
 {
 	TIMER_EMPTY,
 	TIMER_RUNNING,
-	TIMER_PAUSED,
+	/*TIMER_PAUSED, - might be useful in the future*/
 };
 
 /** Keep track of timers */
@@ -63,11 +63,7 @@ static bool timer_initialised = false;
 RETURN_STATUS init_timer()
 {
 	if(timer_initialised)
-		return FAILURE;
-
-
-	/* Before we can hook into the time callback we need hardware */
-	init_uc();
+		return SUCCESS;
 
 
 	/* Initialise all of the timer structs to 0. */

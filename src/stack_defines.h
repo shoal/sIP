@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright 2010 Dave Barnard
+ * Copyright 2010, 2011 Dave Barnard
  *
  *  This file is part of sIP
  *
