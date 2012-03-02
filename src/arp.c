@@ -126,7 +126,7 @@ RETURN_STATUS init_arp()
  *	Return:
  * 		SUCCESS		probably.
  ***************************************************/
-RETURN_STATUS add_arp_entry(const uint8_t hw_addr[6], const uint8_t ip4_addr[4], uint32_t timeout, bool valid)
+RETURN_STATUS add_arp_entry(const uint8_t *ip4_addr/*[4]*/, const uint8_t *hw_addr/*[6]*/, uint32_t timeout, bool valid)
 {
 
 	/* Dont add a new entry if it already exists */
@@ -209,7 +209,7 @@ RETURN_STATUS add_arp_entry(const uint8_t hw_addr[6], const uint8_t ip4_addr[4],
  * 		SUCCESS
  * 		FAILURE		If address is not found.
  ***************************************************/
-RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
+RETURN_STATUS resolve_ether_addr(const uint8_t *ip4_addr/*[4]*/, uint8_t *hw_addr/*[6]*/)
 {
 
 	bool cached_exists = false;
@@ -237,7 +237,7 @@ RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6])
 	/* Add an ARP entry if there isn't one already. */
 	if(cached_exists == false)
 	{
-		if(add_arp_entry(hw_addr, ip4_addr, ARP_DEFAULT_TIMEOUT, false) != SUCCESS)
+		if(add_arp_entry(ip4_addr, hw_addr, ARP_DEFAULT_TIMEOUT, false) != SUCCESS)
 		{
 			return FAILURE;
 		}
@@ -380,7 +380,7 @@ void arp_arrival_callback(const uint8_t *buffer, const uint16_t buffer_len)
 
 		// Someone has replied to the request we (may have) sent.
 		// If not treat is as gratuitous
-		add_arp_entry(src_hw_addr, src_prot_addr, ARP_DEFAULT_TIMEOUT, true);
+		add_arp_entry(src_prot_addr, src_hw_addr, ARP_DEFAULT_TIMEOUT, true);
 		break;
 
 	case ARP_REQUEST:
@@ -451,7 +451,7 @@ void arp_timeout_callback(const uint16_t ident)
 	{
 		if(arp_table[i].timeout_id == ident)
 		{
-			remove_arp_entry(arp_table[i].ip_addr, arp_table[i].hw_addr);
+			remove_arp_entry((const uint8_t*)arp_table[i].hw_addr, (const uint8_t*)arp_table[i].ip_addr);
 
 			break;
 		}
@@ -470,7 +470,7 @@ void arp_timeout_callback(const uint16_t ident)
  * 		SUCCESS
  * 		FAILURE
  ***************************************************/
-void remove_arp_entry(volatile uint8_t* hw_addr, volatile uint8_t* ip4_addr)
+void remove_arp_entry(const uint8_t* hw_addr, const uint8_t* ip4_addr)
 {
 	int i = 0;
 	for(i = 0; i < ARP_TABLE_SIZE; i++)

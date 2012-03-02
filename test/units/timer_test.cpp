@@ -94,7 +94,7 @@ void timer_test_callback(uint16_t id)
 TEST(timer, callback_thing)
 {
 	timer_test_cb_count = 0;
-	uint16_t id = add_timer(10, &timer_test_callback);
+        /*uint16_t id =*/ add_timer(10, &timer_test_callback);
 
 	CHECK_EQUAL(0, timer_test_cb_count);
 

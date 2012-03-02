@@ -58,13 +58,13 @@ typedef enum IP_TYPE
 RETURN_STATUS init_ip(void);
 
 /** Set our IP address **/
-RETURN_STATUS set_ipv4_addr(uint8_t addr[4]);
+RETURN_STATUS set_ipv4_addr(uint8_t *addr/*[4]*/);
 
 /** Get our IP address **/
 const uint8_t * get_ipv4_addr(void);
 
 /** Send datagram **/
-RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const uint16_t buff_len, IP_TYPE type);
+RETURN_STATUS send_ip4_datagram(const uint8_t *dest/*[4]*/, uint8_t* buffer, const uint16_t buff_len, IP_TYPE type);
 
 /** Manage who to call when a packet arrives. */
 RETURN_STATUS add_ip4_packet_callback(IP_TYPE packet_type, void(*handler)(const uint8_t* src_addr, const uint8_t* buffer, const uint16_t buffer_len));

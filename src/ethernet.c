@@ -100,7 +100,7 @@ RETURN_STATUS init_ethernet(void)
  *	Return:
  * 		SUCCESS
  ***************************************************/
-RETURN_STATUS set_ether_addr(const uint8_t addr[6])
+RETURN_STATUS set_ether_addr(const uint8_t *addr/*[6]*/)
 {
 	sr_memcpy(ethernet_addr, addr, 6);
 	return SUCCESS;
@@ -245,7 +245,7 @@ void ether_frame_available(uint8_t *buffer, uint16_t buffer_len)
  * 		SUCCESS			Frame placed on the wire.
  * 		FAIL			Frame not sent
  ***************************************************/
-RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffer, uint16_t buffer_len, const ETHERNET_TYPE type)
+RETURN_STATUS send_ether_packet(const uint8_t *dest_addr/*[6]*/, const uint8_t *buffer, uint16_t buffer_len, const ETHERNET_TYPE type)
 {
 
 	/* Assume we cant send jumbo frames (yet!) */

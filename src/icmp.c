@@ -58,6 +58,10 @@
 #define ICMP_HEADER_LEN	8
 #define ICMP_PING_LEN	12
 
+/* ICMP mesage types */
+#define ICMP_PING_REPLY_TYPE	0
+#define ICMP_PING_REQUEST_TYPE	8
+
 
 /* Dont keep initialising this protocol */
 static bool icmp_initialised = false;
@@ -162,7 +166,7 @@ void icmp_arrival_callback(const uint8_t *src_addr, const uint8_t* buffer, const
 	uint8_t type = buffer[ICMP_TYPE];
 
 	/* Ping reply - dont worry about checking authenticity. */
-	if(type == 0)
+	if(type == ICMP_PING_REPLY_TYPE)
 	{
 		ping_host_available = true;
 		kill_timer(ping_timeout_id, false);
@@ -171,7 +175,7 @@ void icmp_arrival_callback(const uint8_t *src_addr, const uint8_t* buffer, const
 
 	/* Ping request */
 #ifndef WITHOUT_PING
-	if(type == 8)
+	if(type == ICMP_PING_REQUEST_TYPE)
 	{
 		if(buffer_len > MAX_PING_REPLY_LEN)
 			return;
@@ -218,7 +222,7 @@ RETURN_STATUS ping(const uint8_t* dest_addr)
 	 *	   |    Data
 	 *	   +------------
 	 *
-	 * Type: 8
+	 * Type: ICMP_PING_REQUEST (8)
 	 * Code: 0
 	 * Checksum: Ones complement
 	 * ID: Any number to help match echo & reply
@@ -229,7 +233,7 @@ RETURN_STATUS ping(const uint8_t* dest_addr)
 	uint8_t ping_header[ICMP_PING_LEN];
 
 	/* Type */
-	ping_header[ICMP_TYPE] = 0x08;
+	ping_header[ICMP_TYPE] = ICMP_PING_REQUEST_TYPE;
 
 	/* Code */
 	ping_header[ICMP_CODE] = 0x00;

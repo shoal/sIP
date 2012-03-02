@@ -58,7 +58,7 @@ typedef enum ETHERNET_TYPE
 RETURN_STATUS init_ethernet(void);
 
 /** Set ethernet address **/
-RETURN_STATUS set_ether_addr(const uint8_t addr[6]);
+RETURN_STATUS set_ether_addr(const uint8_t *addr/*[6]*/);
 
 /** Get ethernet address **/
 const uint8_t * get_ether_addr(void);
@@ -73,7 +73,7 @@ RETURN_STATUS remove_ether_packet_callback(ETHERNET_TYPE packet_type, void (*han
 void ether_frame_available(uint8_t *buffer, uint16_t buffer_len);
 
 /** Submit a payload to send **/
-RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffer, const uint16_t buffer_len, const ETHERNET_TYPE type);
+RETURN_STATUS send_ether_packet(const uint8_t *dest_addr/*[6]*/, const uint8_t *buffer, const uint16_t buffer_len, const ETHERNET_TYPE type);
 
 
 

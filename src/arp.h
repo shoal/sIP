@@ -64,13 +64,13 @@ enum opcodes
 
 
 /** Get IPv4 addr from hw addr **/
-RETURN_STATUS resolve_ether_addr(const uint8_t ip4_addr[4], uint8_t hw_addr[6]);
+RETURN_STATUS resolve_ether_addr(const uint8_t *ip4_addr/*[4]*/, uint8_t *hw_addr/*[6]*/);
 
 /** Add an ARP entry. **/
-RETURN_STATUS add_arp_entry(const uint8_t hw_addr[6], const uint8_t ip4_addr[4], uint32_t timeout, bool valid);
+RETURN_STATUS add_arp_entry(const uint8_t *ip4_addr/*[4]*/, const uint8_t *hw_addr/*[6]*/, uint32_t timeout, bool valid);
 
 /** Remove an ARP entry **/
-void remove_arp_entry(volatile uint8_t* hw_addr, volatile uint8_t* ip4_addr);
+void remove_arp_entry(const uint8_t *hw_addr, const uint8_t *ip4_addr);
 
 /** ARP packet arrival callback **/
 void arp_arrival_callback(const uint8_t *buffer, const uint16_t buffer_len);

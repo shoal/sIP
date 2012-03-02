@@ -98,7 +98,7 @@ RETURN_STATUS init_ip(void)
  *	Return:
  * 		SUCCESS
  ***************************************************/
-RETURN_STATUS set_ipv4_addr(uint8_t addr[4])
+RETURN_STATUS set_ipv4_addr(uint8_t *addr/*[4]*/)
 {
 	ip_addr[0] = addr[0];
 	ip_addr[1] = addr[1];
@@ -142,7 +142,7 @@ const uint8_t * get_ipv4_addr(void)
  *	Return:
  * 		RETURN_STATUS
  ***************************************************/
-RETURN_STATUS send_ip4_datagram(const uint8_t dest[4], uint8_t* buffer, const uint16_t buff_len, IP_TYPE type)
+RETURN_STATUS send_ip4_datagram(const uint8_t *dest/*[4]*/, uint8_t* buffer, const uint16_t buff_len, IP_TYPE type)
 {
 	if(buff_len > IP_MAX_PACKET)
 	{

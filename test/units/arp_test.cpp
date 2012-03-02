@@ -65,9 +65,9 @@ TEST(arp, add_arp_entry)
 	// Record time info:
 	int iOldTime = arp_table[0].timeout_id;
 
-	uint8_t hw_addr[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
-	uint8_t ip_addr[4] = {0x77, 0x88, 0x99, 0xAA };
-	RETURN_STATUS ret = add_arp_entry(hw_addr, ip_addr, 100, true);
+        const uint8_t hw_addr[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
+        const uint8_t ip_addr[4] = {0x77, 0x88, 0x99, 0xAA };
+        RETURN_STATUS ret = add_arp_entry(ip_addr, hw_addr, 100, true);
 	CHECK_EQUAL(SUCCESS, ret);
 
 	CHECK(arp_table[0].valid);
@@ -100,7 +100,7 @@ TEST(arp, add_remove_arp_entry)
 {
 	uint8_t hw_addr[6] = {0x01, 0x01, 0x02, 0x02, 0x03, 0x03 };
 	uint8_t ip_addr[4] = {0x04, 0x05, 0x06, 0x07 };
-	RETURN_STATUS ret = add_arp_entry(hw_addr, ip_addr, 100, true);
+	RETURN_STATUS ret = add_arp_entry(ip_addr, hw_addr, 100, true);
 	CHECK_EQUAL(SUCCESS, ret);
 
 	// Assume the above will fill entry 0 & no further
@@ -108,7 +108,7 @@ TEST(arp, add_remove_arp_entry)
 	CHECK(!arp_table[1].valid);
 	CHECK(!arp_table[2].valid);
 
-	ret = add_arp_entry(hw_addr, ip_addr, 100, true);
+        ret = add_arp_entry(ip_addr, hw_addr, 100, true);
 	CHECK_EQUAL(SUCCESS, ret);
 
 	// Nothing should have changed.
@@ -119,7 +119,7 @@ TEST(arp, add_remove_arp_entry)
 	// Different entry;
 	uint8_t hw_addr2[6] = {0x10, 0x10, 0x20, 0x20, 0x30, 0x30 };
 	uint8_t ip_addr2[4] = {0x40, 0x50, 0x60, 0x70 };
-	ret = add_arp_entry(hw_addr2, ip_addr2, 100, true);
+        ret = add_arp_entry(ip_addr2, hw_addr2, 100, true);
 	CHECK_EQUAL(SUCCESS, ret);
 
 	CHECK(arp_table[0].valid);
@@ -135,11 +135,11 @@ TEST(arp, add_remove_arp_entry)
 TEST(arp, resolve_ether_addr_existing)
 {
 	// Record time info:
-	int iOldTime = arp_table[0].timeout_id;
+//	int iOldTime = arp_table[0].timeout_id;
 
-	uint8_t hw_addr[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
-	uint8_t ip_addr[4] = {0x77, 0x88, 0x99, 0xAA };
-	RETURN_STATUS ret = add_arp_entry(hw_addr, ip_addr, 100, true);
+        const uint8_t hw_addr[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
+        const uint8_t ip_addr[4] = {0x77, 0x88, 0x99, 0xAA };
+        RETURN_STATUS ret = add_arp_entry(ip_addr, hw_addr, 100, true);
 	CHECK_EQUAL(SUCCESS, ret);
 
 	uint8_t hw_addr_out[6] = {0};
@@ -199,8 +199,8 @@ TEST(arp, incomming_arp_arrival_callback)
 	uint8_t ip_addr[4] = { 0x12, 0x34, 0x56, 0x78 };
 	set_ipv4_addr(ip_addr);
 
-	uint8_t them_hw[6] = { 0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA };
-	uint8_t them_ip[4] = { 0xAB, 0xAC, 0xAD, 0xAE };
+        const uint8_t them_hw[6] = { 0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA };
+        const uint8_t them_ip[4] = { 0xAB, 0xAC, 0xAD, 0xAE };
 
 	uint8_t buff[] = {
 	0x00, 0x01,					//ether
@@ -240,10 +240,23 @@ IGNORE_TEST(arp, outgoing_arp_arrival_callback)
 //#warning outgoing_arp_arrival_callback TODO
 }
 
-IGNORE_TEST(arp, arp_timeout_callback)
+TEST(arp, arp_timeout_callback)
 {
-//#warning arp_timeout_callback TODO
 //	ARP timeout callback
-	//void arp_timeout_callback(const uint16_t ident);
+
+    const uint8_t hw_addr[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
+    const uint8_t ip_addr[4] = {0x77, 0x88, 0x99, 0xAA };
+    RETURN_STATUS ret = add_arp_entry(ip_addr, hw_addr, 10, true);
+    CHECK_EQUAL(SUCCESS, ret);
+
+    // Wait 9 timer ticks it should still be there.
+    for(uint8_t i = 0; i < 9; i++)
+        timer_tick_callback();
+
+    CHECK(arp_table[0].valid);
+
+    timer_tick_callback();
+
+    CHECK(!arp_table[0].valid);
 }
 
