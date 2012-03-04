@@ -1,7 +1,7 @@
 #include "ethernet_test.h"
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
-
+#include <stdlib.h>
 
 // The file we are testing:
 extern "C"
@@ -141,7 +141,16 @@ TEST(ethernet, ether_frame_available)
 	remove_ether_packet_callback(IPv4, &ethernet_test_mock);
 }
 
-IGNORE_TEST(ethernet, send_ether_packet)
+TEST(ethernet, send_ether_packet)
 {
-	//RETURN_STATUS send_ether_packet(const uint8_t dest_addr[6], const uint8_t *buffer, const uint16_t buffer_len, const ETHERNET_TYPE type);
+    const uint8_t dest_addr[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
+    const uint16_t buff_size = 100;
+    const uint8_t *buffer = (uint8_t*)malloc(buff_size);
+
+    RETURN_STATUS ret = send_ether_packet(dest_addr, buffer, buff_size, IPv4);
+
+    //
+    CHECK_EQUAL(ret, NOT_AVAILABLE);
+
+
 }

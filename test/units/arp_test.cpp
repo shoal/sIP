@@ -204,7 +204,7 @@ TEST(arp, incomming_arp_arrival_callback)
 
 	uint8_t buff[] = {
 	0x00, 0x01,					//ether
-	0x08, 0x00,					//arp
+        0x08, 0x00,					//arp (for IPv4)
 	0x06,						//hw len
 	0x04,						//ip len
 	0x00, 0x02,					//response
@@ -235,11 +235,6 @@ TEST(arp, incomming_arp_arrival_callback)
 	remove_arp_entry(them_hw, them_ip);
 }
 
-IGNORE_TEST(arp, outgoing_arp_arrival_callback)
-{
-//#warning outgoing_arp_arrival_callback TODO
-}
-
 TEST(arp, arp_timeout_callback)
 {
 //	ARP timeout callback
@@ -258,5 +253,11 @@ TEST(arp, arp_timeout_callback)
     timer_tick_callback();
 
     CHECK(!arp_table[0].valid);
+}
+
+
+IGNORE_TEST(arp, outgoing_arp_arrival_callback)
+{
+//#warning outgoing_arp_arrival_callback TODO
 }
 
