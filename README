@@ -18,8 +18,12 @@ remote control (eg home automation), data logging (eg
 weather stations) and servers (eg small web and time servers).
 
 The stack is not complete and is available online purely
-for backup purposes at the moment.  Completion is expected 
-during 2011 (as it is a spare-time project).
+for reference.  I do not have any hardware for testing,
+which is holding up development.
+
+With the arrival of devices such as the Raspberry Pi it's
+easier than ever to create small network-aware projects,
+so this stack may never get finished...
 
 Modifications are welcome, and code critique/review even
 more so.
