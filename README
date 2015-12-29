@@ -1,4 +1,12 @@
-Simple IP (sIP) is an TCP/IP stack designed for embedded
+UPDATE:  Due to the availability of low cost high power hardware these
+days (eg RPi), which was not available to hobyists when this project started,
+there's now a very limited need for this sort of networking stack;
+so development has stopped.  It is still useful for educational purposes
+so will be kept online.
+
+
+
+Simple IP (sIP) is an UDP/IP stack designed for embedded
 devices, allowing small microcontrollers (8-bit) to communicate 
 via Ethernet.
 
